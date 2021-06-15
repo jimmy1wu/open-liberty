@@ -100,6 +100,8 @@ public class CxfX509SvcClient extends HttpServlet {
                 thePort = httpSecurePortNum;
                 httpProtocal = "https:";
             }
+            System.out.println("httpPortNum:" + httpPortNum +
+                               " httpSecurePortNum: " + httpSecurePortNum);
         } catch (Exception ex) {
             System.out.println("Failed to find all required parameters");
             ex.printStackTrace();
@@ -155,10 +157,10 @@ public class CxfX509SvcClient extends HttpServlet {
  * // Let set up some SSL attribute. This is a bug-to-be-fixed, customers do not need to do so.
  * String strServerDir = System.getProperty("server.config.dir").replace('\\', '/');
  * String strJksLocation = strServerDir + "/sslServerTrust.jks";
- * 
+ *
  * System.setProperty("javax.net.ssl.trustStore" , strJksLocation);
  * System.setProperty("javax.net.ssl.trustStorePassword", "LibertyServer");
- * 
+ *
  * System.out.println("set javax.net.ssl.trustStore to " + strJksLocation);
  * System.out.println("set javax.net.ssl.trustStorePassword to " + "LibertyClient");
  * }
@@ -263,13 +265,13 @@ public class CxfX509SvcClient extends HttpServlet {
         /*
          * KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
          * ClassLoader loader = Loader.getClassLoader(this.getClass());
-         * 
-         * 
+         *
+         *
          * String signKS = strServerDir.concat("/x509ClientDefault.jks");
          * InputStream input = Merlin.loadInputStream(loader, signKS);
          * keyStore.load(input, "LibertyX509Client".toCharArray());
          * ((Merlin)crypto).setKeyStore(keyStore);
-         * 
+         *
          * // Load the truststore
          * Crypto processCrypto = new Merlin();
          * KeyStore keystore2 = KeyStore.getInstance(KeyStore.getDefaultType());
