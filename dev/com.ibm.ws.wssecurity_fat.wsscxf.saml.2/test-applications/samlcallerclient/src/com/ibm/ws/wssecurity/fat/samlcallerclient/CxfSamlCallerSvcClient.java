@@ -321,6 +321,11 @@ public class CxfSamlCallerSvcClient extends HttpServlet {
                 System.out.println("Setting untID: " + untID + " with password: " + untPassword );
                 requestContext.put("ws-security.username", untID       );
                 requestContext.put("ws-security.password", untPassword );
+                requestContext.put("disableCNCheck", "true");
+                System.out.println("DEBUG - Checking disableCNCheck value...");
+                if (requestContext.containsKey("disableCNCheck")) {
+                	System.out.println("DEBUG - disableCNCheck value: " + requestContext.get("disableCNCheck"));
+                }
             }
 
             SOAPMessage soapResp = dispSOAPMsg.invoke(soapReq);
