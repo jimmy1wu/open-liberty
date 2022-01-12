@@ -377,6 +377,31 @@ public class IDTokenHandlerTest {
     }
 
     @Test
+    public void createToken_customClaims_thirdPartyIDToken_someClaimsNotInTokenButIsAllowed() throws Exception {
+        idTokenMap.put(OAuth20Constants.THIRD_PARTY_ID_TOKEN, new String[] { thirdPartyIDToken });
+        createOIDCTestDefaultExpectations();
+
+        Set<String> allowedThirdPartyIDTokenClaims = new HashSet<String>();
+        allowedThirdPartyIDTokenClaims.add("test1");
+        allowedThirdPartyIDTokenClaims.add("test4");
+        allowedThirdPartyIDTokenClaims.add("test6"); // allowed, but does not exist in THIRD_PARTY_ID_TOKEN
+
+        mockery.checking(new Expectations() {
+            {
+                allowing(oidcServerConfig).getThirdPartyIDTokenClaims();
+                will(returnValue(allowedThirdPartyIDTokenClaims));
+            }
+        });
+
+        OAuth20Token idToken = idTokenHandler.createToken(idTokenMap);
+        JSONObject idTokenClaimsJSON = getIdTokenClaims(idToken);
+
+        assertTrue("ID token should contain third-party claim 'test1'.", idTokenClaimsJSON.containsKey("test1"));
+        assertTrue("ID token should contain third-party claim 'test4'.", idTokenClaimsJSON.containsKey("test4"));
+        assertFalse("ID token should not contain third-party claim 'test6'.", idTokenClaimsJSON.containsKey("test6"));
+    }
+
+    @Test
     public void createToken_customClaims_differentGroupIdentifier() throws Exception {
         createOIDCTestDefaultExpectations();
         // Expectations for custom claims
