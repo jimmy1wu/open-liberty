@@ -13,12 +13,15 @@ package com.ibm.ws.security.openidconnect.backchannellogout;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.jose4j.jwt.JwtClaims;
+import org.jose4j.jwt.MalformedClaimException;
+
 import com.ibm.websphere.ras.Tr;
 import com.ibm.websphere.ras.TraceComponent;
-import com.ibm.websphere.security.jwt.JwtToken;
 import com.ibm.ws.ffdc.annotation.FFDCIgnore;
 import com.ibm.ws.kernel.productinfo.ProductInfo;
 import com.ibm.ws.security.openidconnect.clients.common.ConvergedClientConfig;
+import com.ibm.ws.webcontainer.security.LoggedOutTokenCacheImpl;
 
 public class BackchannelLogoutHelper {
 
@@ -44,8 +47,8 @@ public class BackchannelLogoutHelper {
                 throw new BackchannelLogoutException(errorMsg);
             }
             String logoutTokenParameter = validateRequestAndGetLogoutTokenParameter();
-            validateLogoutToken(logoutTokenParameter);
-            performLogout();
+            JwtClaims logoutToken = validateLogoutToken(logoutTokenParameter);
+            performLogout(logoutToken);
             response.setStatus(HttpServletResponse.SC_OK);
         } catch (BackchannelLogoutException e) {
             Tr.error(tc, "BACKCHANNEL_LOGOUT_REQUEST_FAILED", new Object[] { request.getRequestURI(), e.getMessage() });
@@ -77,13 +80,22 @@ public class BackchannelLogoutHelper {
         return logoutTokenParameter;
     }
 
-    JwtToken validateLogoutToken(String logoutTokenString) throws BackchannelLogoutException {
+    JwtClaims validateLogoutToken(String logoutTokenString) throws BackchannelLogoutException {
         LogoutTokenValidator validator = new LogoutTokenValidator(clientConfig);
         return validator.validateToken(logoutTokenString);
     }
 
-    void performLogout() throws BackchannelLogoutException {
-        // TODO
+    void performLogout(JwtClaims claims) throws BackchannelLogoutException {
+        try {
+            String iss = claims.getIssuer();
+            String sub = claims.getSubject();
+
+            String key = LoggedOutTokenCacheImpl.getCookieCacheBySub().get("test");
+            System.out.println("performLogout: " + key);
+            LoggedOutTokenCacheImpl.getInstance().put(key, "userName");
+        } catch (MalformedClaimException e) {
+            e.printStackTrace();
+        }
     }
 
 }

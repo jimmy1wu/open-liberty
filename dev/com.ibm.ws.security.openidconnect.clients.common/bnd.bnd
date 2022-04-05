@@ -88,7 +88,9 @@ Private-Package: \
 	com.ibm.ws.security.common.jsonwebkey;version=latest,\
 	io.openliberty.org.apache.commons.codec;version=latest,\
 	com.ibm.ws.transport.http;version=latest,\
-	com.ibm.ws.kernel.boot.core;version=latest
+	com.ibm.ws.kernel.boot.core;version=latest,\
+	org.bitbucket.b_c.jose4j,\
+	org.bitbucket.b_c.jose4j
 
 -testpath: \
 	../build.sharedResources/lib/junit/old/junit.jar;version=file,\

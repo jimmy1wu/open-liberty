@@ -211,6 +211,7 @@ public class SSOCookieHelperImpl implements SSOCookieHelper {
     public void removeSSOCookieFromResponse(HttpServletResponse resp) {
         if (resp instanceof com.ibm.wsspi.webcontainer.servlet.IExtendedResponse) {
             ((com.ibm.wsspi.webcontainer.servlet.IExtendedResponse) resp).removeCookie(getSSOCookiename());
+            System.out.println("removed " + getSSOCookiename());
             removeJwtSSOCookies((com.ibm.wsspi.webcontainer.servlet.IExtendedResponse) resp);
         }
     }
@@ -592,10 +593,19 @@ public class SSOCookieHelperImpl implements SSOCookieHelper {
                 if (cookieByteString == null) {
                     cookieByteString = StringUtil.toString(Base64Coder.base64Encode(ssoTokenBytes));
                     updateCookieCache(cookieBytes, cookieByteString);
+//                    System.out.println("COOKIES");
+//                    for (Cookie cookie : resp.getCookies()) {
+//                        System.out.println(cookie.getName());
+//                        System.out.println(cookie.getValue());
+//                    }
                 }
 
                 Cookie ssoCookie = createCookie(req, cookieByteString);
+                System.out.println("SSO COOKIE");
+                System.out.println(ssoCookie.getName());
+                System.out.println(ssoCookie.getValue());
                 resp.addCookie(ssoCookie);
+                LoggedOutTokenCacheImpl.getCookieCacheBySub().put("test", ssoCookie.getValue());
             }
         }
     }

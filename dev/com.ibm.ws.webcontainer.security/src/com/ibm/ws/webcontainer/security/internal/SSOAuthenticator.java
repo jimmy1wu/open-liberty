@@ -138,7 +138,6 @@ public class SSOAuthenticator implements WebAuthenticator {
                 return authResult;
             }
         }
-
         ssoCookieHelper.createLogoutCookies(req, res);
         return authResult;
     }
@@ -172,7 +171,16 @@ public class SSOAuthenticator implements WebAuthenticator {
                      */
                     boolean checkLoggedOutToken = webAppSecurityConfig != null && (webAppSecurityConfig.isTrackLoggedOutSSOCookiesEnabled()
                                                                                    || LoggedOutTokenCacheImpl.getInstance().shouldTrackTokens());
+                    System.out.println("===================");
+                    System.out.println("webappsecurityconfig: " + webAppSecurityConfig);
+                    System.out.println("webappsecurityconfig: " + webAppSecurityConfig != null);
+                    if (webAppSecurityConfig != null)
+                        System.out.println("webappsecurityconfig: " + webAppSecurityConfig.isTrackLoggedOutSSOCookiesEnabled());
+                    else
+                        System.out.println("IT IS NULL");
+
                     if (checkLoggedOutToken && isTokenLoggedOut(ltpa64)) {
+                        System.out.println("log it out");
                         cleanupLoggedOutToken(req, res);
                         return authResult;
                     }

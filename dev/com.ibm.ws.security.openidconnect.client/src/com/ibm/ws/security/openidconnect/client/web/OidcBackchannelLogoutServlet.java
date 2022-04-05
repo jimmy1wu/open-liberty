@@ -63,6 +63,7 @@ public class OidcBackchannelLogoutServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        System.out.println("REQUEST CAME IN");
         String requestUri = request.getRequestURI();
         OidcClientConfig matchingConfig = getMatchingConfig(requestUri);
         BackchannelLogoutHelper logoutHelper = new BackchannelLogoutHelper(request, response, matchingConfig);

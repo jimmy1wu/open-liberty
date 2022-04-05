@@ -10,6 +10,7 @@
  *******************************************************************************/
 package com.ibm.ws.webcontainer.security;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
@@ -39,6 +40,12 @@ public class LoggedOutTokenCacheImpl implements LoggedOutTokenCache {
     private static final AtomicServiceReference<TokenManager> tokenManager = new AtomicServiceReference<TokenManager>("tokenManager");
 
     private final InMemoryLoggedOutTokenCache inMemoryCookieCache = new InMemoryLoggedOutTokenCache();
+
+    private static final Map<String, String> cookieCacheBySubject = new HashMap<String, String>();
+
+    public static Map<String, String> getCookieCacheBySub() {
+        return cookieCacheBySubject;
+    }
 
     protected void setTokenManager(ServiceReference<TokenManager> ref) {
         tokenManager.setReference(ref);
