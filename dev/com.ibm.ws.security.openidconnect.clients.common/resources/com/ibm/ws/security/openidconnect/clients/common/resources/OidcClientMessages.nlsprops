@@ -298,5 +298,17 @@ LOGOUT_TOKEN_DUP_JTI=CWWKS1551E: Another logout token with the same [{0}] "jti" 
 LOGOUT_TOKEN_DUP_JTI.explanation=The "jti" claim uniquely identifies a logout token. Another logout token with this "jti" was used, so the token cannot be used again.
 LOGOUT_TOKEN_DUP_JTI.useraction=Ensure the logout token contains a unique "jti" value and that logout tokens are not used multiple times.
 
+VALUE_NOT_HEXADECIMAL=CWWKS1552E: The provided value is not in hexadecimal format, so it cannot be decoded.
+VALUE_NOT_HEXADECIMAL.explanation=The value for an encrypted token is expected to be encoded in hexadecimal format.
+VALUE_NOT_HEXADECIMAL.useraction=Verify that the value is encoded correctly in hexadecimal format.
+
+OIDC_SESSION_CREATION_FAILURE=CWWKS1553E: An OpenID Connect session information object could not be created. {0}
+OIDC_SESSION_CREATION_FAILURE.explanation=The client secret that is used to encrypt the OpenID Connect session ID might be malformed or might not be valid. An error might have occurred while getting the initialization vector for the encryption algorithm, or the required AES encryption algorithm might not be available.
+OIDC_SESSION_CREATION_FAILURE.useraction=Verify that the client secret that is used to encrypt the OpenID Connect session ID is valid and can be used for AES encryption.
+
+OIDC_SESSION_PARSING_FAILURE=CWWKS1554E: The OpenID Connect session information could not be parsed. {0}
+OIDC_SESSION_PARSING_FAILURE.explanation=An error occurred that prevented the AES encryption algorithm from decrypting the OpenID Connect session ID. The secret key that is used to decrypt the OpenID Connect session ID might be malformed or might not be valid. The OpenID Connect session ID might not be formatted properly. An error might have occurred while retrieving the initialization vector for the decryption algorithm, or the required AES encryption algorithm might not be available.
+OIDC_SESSION_PARSING_FAILURE.useraction=Verify that the client secret is valid and can be used for AES decryption. Verify that the OpenID Connect session ID is formatted correctly and that the decryption algorithm is available.
+
 # STOP HERE, OIDC SERVER HAS RESERVED 1600 - 1649
 
