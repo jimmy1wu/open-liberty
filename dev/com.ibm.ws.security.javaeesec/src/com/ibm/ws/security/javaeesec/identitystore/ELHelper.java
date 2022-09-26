@@ -259,12 +259,20 @@ public class ELHelper {
                 throw new IllegalArgumentException("EL expression '" + expression + "' for '" + name + "' evaluated to null.");
             } else if (obj instanceof Boolean) {
                 result = (Boolean) obj;
-                immediate = isImmediateExpression(expression);
-            } else {
-                throw new IllegalArgumentException("Expected '" + name + "' to evaluate to a Boolean value.");
+            } else if (obj instanceof String) {
+                if (obj.toString().equals("true")) {
+                    result = new Boolean(true);
+                }
+                if (obj.toString().equals("false")) {
+                    result = new Boolean(false);
+                }
             }
-        }
+            if (result == null) {
+                throw new IllegalArgumentException("Expected '" + name + "' to evaluate to a Boolean.");
+            }
+            immediate = isImmediateExpression(expression);
 
+        }
         return (immediateOnly && !immediate) ? null : result;
     }
 
