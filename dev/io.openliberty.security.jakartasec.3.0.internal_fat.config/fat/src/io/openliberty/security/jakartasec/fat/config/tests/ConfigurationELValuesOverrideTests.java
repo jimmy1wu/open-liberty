@@ -112,6 +112,28 @@ public class ConfigurationELValuesOverrideTests extends CommonAnnotatedSecurityT
                                        "oidc.client.useSessionFalse.servlets",
                                        "oidc.client.base.*");
 
+        swh.deployConfigurableTestApps(rpServer, "redirectToOriginalResourceTrueELTrue.war", "RedirectToOriginalResourceTrue.war",
+                                       buildUpdatedConfigMap(opServer, rpServer, "redirectToOriginalResourceTrueELTrue", "allValues.openIdConfig.properties",
+                                                             TestConfigMaps.getRedirectToOriginalResourceExpressionTrue()),
+                                       "oidc.client.redirectToOriginalResourceTrue.servlets",
+                                       "oidc.client.base.*");
+        swh.deployConfigurableTestApps(rpServer, "redirectToOriginalResourceTrueELFalse.war", "RedirectToOriginalResourceTrue.war",
+                                       buildUpdatedConfigMap(opServer, rpServer, "redirectToOriginalResourceTrueELFalse", "allValues.openIdConfig.properties",
+                                                             TestConfigMaps.getRedirectToOriginalResourceExpressionFalse()),
+                                       "oidc.client.redirectToOriginalResourceTrue.servlets",
+                                       "oidc.client.base.*");
+
+        swh.deployConfigurableTestApps(rpServer, "redirectToOriginalResourceFalseELTrue.war", "RedirectToOriginalResourceFalse.war",
+                                       buildUpdatedConfigMap(opServer, rpServer, "redirectToOriginalResourceFalseELTrue", "allValues.openIdConfig.properties",
+                                                             TestConfigMaps.getRedirectToOriginalResourceExpressionTrue()),
+                                       "oidc.client.redirectToOriginalResourceFalse.servlets",
+                                       "oidc.client.base.*");
+        swh.deployConfigurableTestApps(rpServer, "redirectToOriginalResourceFalseELFalse.war", "RedirectToOriginalResourceFalse.war",
+                                       buildUpdatedConfigMap(opServer, rpServer, "redirectToOriginalResourceFalseELFalse", "allValues.openIdConfig.properties",
+                                                             TestConfigMaps.getRedirectToOriginalResourceExpressionFalse()),
+                                       "oidc.client.redirectToOriginalResourceFalse.servlets",
+                                       "oidc.client.base.*");
+
     }
 
     /****************************************************************************************************************/
@@ -168,4 +190,28 @@ public class ConfigurationELValuesOverrideTests extends CommonAnnotatedSecurityT
 
     // useSession - may need a different OP with different httpSession values in the server config in order to fully test
     // <httpSession cookieHttpOnly="false" cookieName="clientJSESSIONID"/>
+
+    @Test
+    public void ConfigurationELValuesOverrideTests_redirectToOriginalResource_true_redirectToOriginalResourceExpression_true() throws Exception {
+
+        runGoodEndToEndTest("redirectToOriginalResourceTrueELTrue", "RedirectToOriginalResourceTrueServlet");
+    }
+
+    @Test
+    public void ConfigurationELValuesOverrideTests_redirectToOriginalResource_true_redirectToOriginalResourceExpression_false() throws Exception {
+
+        runGoodEndToEndTest("redirectToOriginalResourceTrueELFalse", "RedirectToOriginalResourceTrueServlet");
+    }
+
+    @Test
+    public void ConfigurationELValuesOverrideTests_redirectToOriginalResource_false_redirectToOriginalResourceExpression_true() throws Exception {
+
+        runGoodEndToEndTest("redirectToOriginalResourceFalseELTrue", "RedirectToOriginalResourceFalseServlet");
+    }
+
+    @Test
+    public void ConfigurationELValuesOverrideTests_redirectToOriginalResource_false_redirectToOriginalResourceExpression_false() throws Exception {
+
+        runGoodEndToEndTest("redirectToOriginalResourceFalseELFalse", "RedirectToOriginalResourceFalseServlet");
+    }
 }

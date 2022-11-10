@@ -22,7 +22,9 @@ src: \
     test-applications/MaximumAnnotation.war/src,\
     test-applications/MaximumAnnotationUsingEL.war/src,\
     test-applications/UseSessionTrue.war/src,\
-    test-applications/UseSessionFalse.war/src
+    test-applications/UseSessionFalse.war/src,\
+    test-applications/RedirectToOriginalResourceTrue.war/src,\
+    test-applications/RedirectToOriginalResourceFalse.war/src
     
 -dependson: \
     build.changeDetector,\
