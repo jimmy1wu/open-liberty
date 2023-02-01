@@ -488,6 +488,46 @@ public class TestConfigMaps {
 
     }
 
+    public static Map<String, Object> getTokenMinValidity5s() throws Exception {
+
+        Map<String, Object> updatedMap = new HashMap<String, Object>();
+        updatedMap.put(Constants.TOKEN_MIN_VALIDITY_EXPRESSION, 5 * 1000);
+        return updatedMap;
+
+    }
+
+    public static Map<String, Object> getTokenMinValidity15s() throws Exception {
+
+        Map<String, Object> updatedMap = new HashMap<String, Object>();
+        updatedMap.put(Constants.TOKEN_MIN_VALIDITY_EXPRESSION, 15 * 1000);
+        return updatedMap;
+
+    }
+
+    public static Map<String, Object> getTokenMinValidity20s() throws Exception {
+
+        Map<String, Object> updatedMap = new HashMap<String, Object>();
+        updatedMap.put(Constants.TOKEN_MIN_VALIDITY_EXPRESSION, 20 * 1000);
+        return updatedMap;
+
+    }
+
+    public static Map<String, Object> getTokenMinValidity0s() throws Exception {
+
+        Map<String, Object> updatedMap = new HashMap<String, Object>();
+        updatedMap.put(Constants.TOKEN_MIN_VALIDITY_EXPRESSION, 0);
+        return updatedMap;
+
+    }
+
+    public static Map<String, Object> getTokenMinValidityMinus5s() throws Exception {
+
+        Map<String, Object> updatedMap = new HashMap<String, Object>();
+        updatedMap.put(Constants.TOKEN_MIN_VALIDITY_EXPRESSION, -5 * 1000);
+        return updatedMap;
+
+    }
+
     public static Map<String, Object> getTokenAutoRefreshExpressionTrue() throws Exception {
 
         Map<String, Object> updatedMap = new HashMap<String, Object>();
