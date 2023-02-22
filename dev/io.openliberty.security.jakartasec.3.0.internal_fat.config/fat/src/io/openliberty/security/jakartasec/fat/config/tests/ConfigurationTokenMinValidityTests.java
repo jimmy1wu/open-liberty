@@ -13,6 +13,9 @@ import static io.openliberty.security.jakartasec.fat.utils.Constants.DEFAULT_TOK
 
 import java.util.List;
 
+import javax.json.JsonObject;
+import javax.json.JsonValue;
+
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -22,6 +25,8 @@ import com.gargoylesoftware.htmlunit.Page;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.ibm.ws.security.fat.common.expectations.Expectations;
 import com.ibm.ws.security.fat.common.expectations.ServerMessageExpectation;
+import com.ibm.ws.security.fat.common.jwt.JwtTokenForTest;
+import com.ibm.ws.security.fat.common.utils.AutomationTools;
 import com.ibm.ws.security.fat.common.utils.SecurityFatHttpUtils;
 
 import componenttest.annotation.Server;
@@ -33,7 +38,9 @@ import io.openliberty.security.jakartasec.fat.configs.TestConfigMaps;
 import io.openliberty.security.jakartasec.fat.utils.CommonExpectations;
 import io.openliberty.security.jakartasec.fat.utils.Constants;
 import io.openliberty.security.jakartasec.fat.utils.MessageConstants;
+import io.openliberty.security.jakartasec.fat.utils.ServletMessageConstants;
 import io.openliberty.security.jakartasec.fat.utils.ShrinkWrapHelpers;
+import jakarta.security.enterprise.authentication.mechanism.http.openid.OpenIdConstant;
 
 /**
  * Tests @OpenIdAuthenticationMechanismDefinition tokenMinValidity and tokenMinValidityExpression
@@ -66,8 +73,7 @@ public class ConfigurationTokenMinValidityTests extends CommonAnnotatedSecurityT
     @ClassRule
     public static RepeatTests repeat = createRandomTokenTypeRepeats();
 
-    private static int TOKEN_LIFETIME_SECONDS = 30;
-    private static int BUFFER_SECONDS = 7; // account for code execution delays
+    private static int BUFFER_SECONDS = 1; // account for code execution delays
 
     @BeforeClass
     public static void setUp() throws Exception {
@@ -165,13 +171,32 @@ public class ConfigurationTokenMinValidityTests extends CommonAnnotatedSecurityT
         WebClient webClient = getAndSaveWebClient();
         Page response = runGoodEndToEndTest(webClient, appRoot, app);
 
-        actions.testLogAndSleep(TOKEN_LIFETIME_SECONDS - (tokenMinValidity / 1000) - BUFFER_SECONDS);
+        System.out.println("$JIMMY");
+        int secTilExp = getSecondsTilTokenExpiration(response);
+        System.out.println(secTilExp + " " + (tokenMinValidity / 1000));
+        actions.testLogAndSleep(secTilExp - (tokenMinValidity / 1000) - BUFFER_SECONDS);
         response = invokeAppGetToApp(webClient, url);
 
-        actions.testLogAndSleep(BUFFER_SECONDS);
+        actions.testLogAndSleep(2 * BUFFER_SECONDS);
         response = invokeAppReturnLoginPage(webClient, url);
 
         return response;
+    }
+
+    private int getSecondsTilTokenExpiration(Page response) throws Exception {
+        long exp = getExpFromIdToken(response);
+        long current = System.currentTimeMillis();
+        long now = (long) Math.ceil(current / 1000.0);
+        System.out.println(exp + " " + current + "->" + now);
+        return (int) (exp - now);
+    }
+
+    private long getExpFromIdToken(Page response) throws Exception {
+        String token = AutomationTools.getTokenFromResponse(response, ServletMessageConstants.SERVLET + ServletMessageConstants.OPENID_CONTEXT + ServletMessageConstants.ID_TOKEN);
+        JwtTokenForTest jwtToken = new JwtTokenForTest(token);
+        JsonObject payload = jwtToken.getJsonPayload();
+        JsonValue exp = payload.get(OpenIdConstant.EXPIRATION_IDENTIFIER);
+        return Long.parseLong(exp.toString());
     }
 
     /**
@@ -405,6 +430,11 @@ public class ConfigurationTokenMinValidityTests extends CommonAnnotatedSecurityT
 
         runGoodEndToEndTokenMinValidityTest("TokenMinValidityDefault", "TokenMinValidityDefaultServlet", DEFAULT_TOKEN_MIN_VALIDITY);
 
+    }
+
+    @Test
+    public void fail() throws Exception {
+        throw new Exception();
     }
 
 }
