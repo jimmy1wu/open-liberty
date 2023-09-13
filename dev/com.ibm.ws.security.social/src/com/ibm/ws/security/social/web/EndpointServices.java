@@ -11,7 +11,6 @@ package com.ibm.ws.security.social.web;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.net.URL;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -30,7 +29,6 @@ import com.ibm.websphere.ras.annotation.Trivial;
 import com.ibm.ws.ffdc.annotation.FFDCIgnore;
 import com.ibm.ws.security.SecurityService;
 import com.ibm.ws.security.common.web.CommonWebConstants;
-import com.ibm.ws.security.openidconnect.backchannellogout.BackchannelLogoutHelper;
 import com.ibm.ws.security.openidconnect.clients.common.ConvergedClientConfig;
 import com.ibm.ws.security.openidconnect.clients.common.OidcClientUtil;
 import com.ibm.ws.security.openidconnect.clients.common.RedirectionEntry;
@@ -396,8 +394,8 @@ public class EndpointServices {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             return;
         }
-        BackchannelLogoutHelper logoutHelper = new BackchannelLogoutHelper(request, response, (ConvergedClientConfig) config);
-        logoutHelper.handleBackchannelLogoutRequest();
+//        BackchannelLogoutHelper logoutHelper = new BackchannelLogoutHelper(request, response, (ConvergedClientConfig) config);
+//        logoutHelper.handleBackchannelLogoutRequest();
     }
 
     /**

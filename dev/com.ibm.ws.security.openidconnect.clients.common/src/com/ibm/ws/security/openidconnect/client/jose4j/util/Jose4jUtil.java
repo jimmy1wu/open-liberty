@@ -4,7 +4,7 @@
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-2.0/
- * 
+ *
  * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
@@ -20,12 +20,11 @@ import java.util.Hashtable;
 import java.util.Map;
 
 import javax.security.auth.Subject;
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.codec.binary.Base64;
 import org.jose4j.jws.JsonWebSignature;
 import org.jose4j.jwt.JwtClaims;
-import org.jose4j.jwt.MalformedClaimException;
 import org.jose4j.jwt.consumer.JwtContext;
 import org.jose4j.jwx.JsonWebStructure;
 import org.jose4j.keys.HmacKey;
@@ -33,11 +32,9 @@ import org.jose4j.keys.HmacKey;
 import com.ibm.json.java.JSONObject;
 import com.ibm.websphere.ras.Tr;
 import com.ibm.websphere.ras.TraceComponent;
-import com.ibm.websphere.ras.annotation.Sensitive;
 import com.ibm.ws.ffdc.annotation.FFDCIgnore;
 import com.ibm.ws.kernel.productinfo.ProductInfo;
 import com.ibm.ws.security.authentication.AuthenticationConstants;
-import com.ibm.ws.security.common.crypto.HashUtils;
 import com.ibm.ws.security.common.jwk.impl.JwKRetriever;
 import com.ibm.ws.security.common.web.WebSSOUtils;
 import com.ibm.ws.security.jwt.utils.JweHelper;
@@ -48,8 +45,6 @@ import com.ibm.ws.security.openidconnect.clients.common.ConvergedClientConfig;
 import com.ibm.ws.security.openidconnect.clients.common.JtiNonceCache;
 import com.ibm.ws.security.openidconnect.clients.common.OIDCClientAuthenticatorUtil;
 import com.ibm.ws.security.openidconnect.clients.common.OidcClientRequest;
-import com.ibm.ws.security.openidconnect.clients.common.OidcSessionCache;
-import com.ibm.ws.security.openidconnect.clients.common.OidcSessionInfo;
 import com.ibm.ws.security.openidconnect.clients.common.OidcUtil;
 import com.ibm.ws.security.openidconnect.clients.common.TraceConstants;
 import com.ibm.ws.security.openidconnect.jose4j.Jose4jValidator;
@@ -154,11 +149,12 @@ public class Jose4jUtil {
                 }
                 if (idToken != null) {
                     props.put(Constants.ID_TOKEN_OBJECT, idToken);
+                    String iss = new String(Base64.encodeBase64(idToken.getIssuer().getBytes()));
+                    String sub = new String(Base64.encodeBase64(idToken.getSubject().getBytes()));
+                    String sid = new String(Base64.encodeBase64(((String) idToken.getClaim("sid")).getBytes()));
+                    props.put("backchannel-logout", iss + ":" + sub + ":" + sid);
                 }
                 oidcResult = new ProviderAuthenticationResult(AuthResult.SUCCESS, HttpServletResponse.SC_OK, null, null, props, null);
-                if (isRunningBetaMode()) {
-                    createWASOidcSession(oidcClientRequest, jwtClaims, clientConfig);
-                }
                 return oidcResult;
             }
 
@@ -187,6 +183,10 @@ public class Jose4jUtil {
             }
             if (idToken != null) {
                 customProperties.put(Constants.ID_TOKEN_OBJECT, idToken); // pass back to authenticator
+                String iss = new String(Base64.encodeBase64(idToken.getIssuer().getBytes()));
+                String sub = new String(Base64.encodeBase64(idToken.getSubject().getBytes()));
+                String sid = new String(Base64.encodeBase64(((String) idToken.getClaim("sid")).getBytes()));
+                customProperties.put("backchannel-logout", iss + ":" + sub + ":" + sid);
             }
 
             //addJWTTokenToSubject(customProperties, idToken, clientConfig);
@@ -194,34 +194,12 @@ public class Jose4jUtil {
             //doIdAssertion(customProperties, payload, clientConfig);
             oidcResult = attributeToSubject.doMapping(customProperties, subject);
             //oidcResult = new ProviderAuthenticationResult(AuthResult.SUCCESS, HttpServletResponse.SC_OK, username, subject, customProperties, null);
-            if (oidcResult.getStatus() == AuthResult.SUCCESS && isRunningBetaMode()) {
-                createWASOidcSession(oidcClientRequest, jwtClaims, clientConfig);
-            }
         } catch (Exception e) {
             Tr.error(tc, "OIDC_CLIENT_IDTOKEN_VERIFY_ERR", new Object[] { e.getLocalizedMessage(), clientId });
             oidcResult = new ProviderAuthenticationResult(AuthResult.SEND_401, HttpServletResponse.SC_UNAUTHORIZED);
         }
 
         return oidcResult;
-    }
-
-    private void createWASOidcSession(OidcClientRequest oidcClientRequest, @Sensitive JwtClaims jwtClaims, ConvergedClientConfig clientConfig) throws MalformedClaimException {
-        String configId = HashUtils.digest(clientConfig.getId());
-        String iss = HashUtils.digest(jwtClaims.getIssuer());
-        String sub = HashUtils.digest(jwtClaims.getSubject());
-        String sid = HashUtils.digest(jwtClaims.getClaimValue("sid", String.class));
-        String exp = String.valueOf(jwtClaims.getExpirationTime().getValueInMillis());
-
-        OidcSessionInfo sessionInfo = new OidcSessionInfo(configId, iss, sub, sid, exp, clientConfig);
-
-        OidcSessionCache oidcSessionCache = clientConfig.getOidcSessionCache();
-        oidcSessionCache.insertSession(sessionInfo);
-
-        String wasOidcSessionId = sessionInfo.getSessionId();
-        Cookie cookie = webSsoUtils.createCookie(ClientConstants.WAS_OIDC_SESSION, wasOidcSessionId, oidcClientRequest.getRequest());
-        cookie.setSecure(true);
-
-        oidcClientRequest.getResponse().addCookie(cookie);
     }
 
     boolean isRunningBetaMode() {

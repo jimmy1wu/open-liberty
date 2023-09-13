@@ -20,6 +20,7 @@ import java.util.Set;
 
 import org.jose4j.jwt.JwtClaims;
 import org.jose4j.jwt.MalformedClaimException;
+import org.jose4j.jwt.consumer.InvalidJwtException;
 import org.jose4j.jwt.consumer.JwtContext;
 
 import com.ibm.oauth.core.api.error.OidcServerException;
@@ -38,6 +39,7 @@ import com.ibm.ws.security.oauth20.plugins.OidcBaseClientValidator;
 import com.ibm.ws.security.oauth20.plugins.jose4j.JWTData;
 import com.ibm.ws.security.oauth20.plugins.jose4j.JwsSigner;
 import com.ibm.ws.security.oauth20.util.CacheUtil;
+import com.ibm.ws.security.oauth20.util.OIDCConstants;
 import com.ibm.ws.security.oauth20.util.OidcOAuth20Util;
 import com.ibm.ws.security.openidconnect.backchannellogout.BackchannelLogoutException;
 import com.ibm.ws.webcontainer.security.openidconnect.OidcServerConfig;
@@ -194,9 +196,19 @@ public class LogoutTokenBuilder {
     void removeRefreshTokenAssociatedWithOAuthTokenFromCache(OAuth20Token cachedToken) {
         CacheUtil cu = new CacheUtil(tokenCache);
         OAuth20Token refreshToken = cu.getRefreshToken(cachedToken);
-        if (refreshToken != null) {
+        if (refreshToken != null && !refreshTokenHasOfflineAccessScope(refreshToken)) {
             tokenCache.remove(refreshToken.getTokenString());
         }
+    }
+
+    boolean refreshTokenHasOfflineAccessScope(OAuth20Token refreshToken) {
+        String[] scopes = refreshToken.getScope();
+        for (String scope : scopes) {
+            if (scope.equals(OIDCConstants.OIDC_DISC_SCOPES_SUPP_OFFLINE_ACC)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -298,6 +310,14 @@ public class LogoutTokenBuilder {
         for (OAuth20Token cachedIdToken : cachedIdTokens) {
             try {
                 String logoutToken = createLogoutTokenForClientFromCachedIdToken(client, cachedIdToken);
+                if (!logoutTokenContainsSid(logoutToken)) {
+                    // if there is no sid, then the logout token will contain only a sub
+                    // which tells the client to log out all sessions for that sub.
+                    // thus, we only need this sub-only logout token to send for this client.
+                    logoutTokens.clear();
+                    logoutTokens.add(logoutToken);
+                    break;
+                }
                 logoutTokens.add(logoutToken);
             } catch (LogoutTokenBuilderException e) {
                 if (e.getCause() instanceof IdTokenDifferentIssuerException) {
@@ -368,6 +388,22 @@ public class LogoutTokenBuilder {
         logoutTokenClaims.setClaim("events", eventsClaim);
 
         return logoutTokenClaims;
+    }
+
+    @FFDCIgnore(InvalidJwtException.class)
+    boolean logoutTokenContainsSid(String logoutToken) {
+        try {
+            JwtContext jwtContext = JwtParsingUtils.parseJwtWithoutValidation(logoutToken);
+            JwtClaims claims = jwtContext.getJwtClaims();
+            String sid = claims.getClaimValueAsString("sid");
+            return sid != null && !sid.isEmpty();
+        } catch (InvalidJwtException e) {
+            // should not happen since we just created the logout token
+            if (tc.isDebugEnabled()) {
+                Tr.debug(tc, "Failed to parse logout token to obtain claims: " + e);
+            }
+            return true;
+        }
     }
 
 }

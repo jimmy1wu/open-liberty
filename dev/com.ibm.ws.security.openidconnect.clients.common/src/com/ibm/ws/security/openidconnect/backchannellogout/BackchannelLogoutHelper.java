@@ -4,7 +4,7 @@
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-2.0/
- * 
+ *
  * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
@@ -15,16 +15,15 @@ package com.ibm.ws.security.openidconnect.backchannellogout;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.codec.binary.Base64;
 import org.jose4j.jwt.JwtClaims;
 
 import com.ibm.websphere.ras.Tr;
 import com.ibm.websphere.ras.TraceComponent;
 import com.ibm.ws.ffdc.annotation.FFDCIgnore;
-import com.ibm.ws.kernel.productinfo.ProductInfo;
-import com.ibm.ws.security.oauth20.util.HashUtils;
+import com.ibm.ws.security.authentication.cache.AuthCacheService;
 import com.ibm.ws.security.openidconnect.backchannellogout.internal.LogoutTokenValidator;
 import com.ibm.ws.security.openidconnect.clients.common.ConvergedClientConfig;
-import com.ibm.ws.security.openidconnect.clients.common.OidcSessionCache;
 
 public class BackchannelLogoutHelper {
 
@@ -35,11 +34,13 @@ public class BackchannelLogoutHelper {
     private final HttpServletRequest request;
     private final HttpServletResponse response;
     private final ConvergedClientConfig clientConfig;
+    private final AuthCacheService authCacheService;
 
-    public BackchannelLogoutHelper(HttpServletRequest request, HttpServletResponse response, ConvergedClientConfig clientConfig) {
+    public BackchannelLogoutHelper(HttpServletRequest request, HttpServletResponse response, ConvergedClientConfig clientConfig, AuthCacheService authCacheService) {
         this.request = request;
         this.response = response;
         this.clientConfig = clientConfig;
+        this.authCacheService = authCacheService;
     }
 
     @FFDCIgnore({ BackchannelLogoutException.class })
@@ -68,9 +69,9 @@ public class BackchannelLogoutHelper {
      * - Request includes a non-empty logout_token parameter
      */
     String validateRequestAndGetLogoutTokenParameter() throws BackchannelLogoutException {
-        if (!ProductInfo.getBetaEdition()) {
-            throw new BackchannelLogoutException("BETA: The back-channel logout feature is only available in the beta edition.");
-        }
+        //        if (!ProductInfo.getBetaEdition()) {
+        //            throw new BackchannelLogoutException("BETA: The back-channel logout feature is only available in the beta edition.");
+        //        }
         String httpMethod = request.getMethod();
         if (!"POST".equalsIgnoreCase(httpMethod)) {
             throw new BackchannelLogoutException("HTTP " + HttpServletResponse.SC_METHOD_NOT_ALLOWED + " Method Not Allowed (" + httpMethod + ")", HttpServletResponse.SC_METHOD_NOT_ALLOWED);
@@ -90,14 +91,14 @@ public class BackchannelLogoutHelper {
 
     void performLogout(JwtClaims logoutTokenClaims) throws BackchannelLogoutException {
         try {
-            String sub = HashUtils.digest(logoutTokenClaims.getSubject());
-            String sid = HashUtils.digest(logoutTokenClaims.getClaimValue("sid", String.class));
-
-            OidcSessionCache oidcSessionCache = clientConfig.getOidcSessionCache();
+            String iss = new String(Base64.encodeBase64(logoutTokenClaims.getIssuer().getBytes()));
+            String sub = new String(Base64.encodeBase64(logoutTokenClaims.getSubject().getBytes()));
+            String sid = logoutTokenClaims.getClaimValue("sid", String.class);
             if (sid != null && !sid.isEmpty()) {
-                oidcSessionCache.invalidateSession(sub, sid);
+                sid = new String(Base64.encodeBase64(sid.getBytes()));
+                authCacheService.remove("backchannel-logout-sid:" + iss + ":" + sid);
             } else {
-                oidcSessionCache.invalidateSessions(sub);
+                authCacheService.remove("backchannel-logout-sub:" + iss + ":" + sub);
             }
         } catch (Exception e) {
             // should not get here

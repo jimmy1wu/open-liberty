@@ -97,6 +97,10 @@ Service-Component: \
     implementation:=com.ibm.ws.security.authentication.internal.cache.keyproviders.JwtSSOTokenBytesCacheKeyProvider; \
     provide:=com.ibm.ws.security.authentication.cache.CacheKeyProvider; \
     properties:="service.vendor=IBM", \
+  com.ibm.ws.security.authentication.internal.cache.keyproviders.BackchannelLogoutKeyProvider; \
+    implementation:=com.ibm.ws.security.authentication.internal.cache.keyproviders.BackchannelLogoutKeyProvider; \
+    provide:=com.ibm.ws.security.authentication.cache.CacheKeyProvider; \
+    properties:="service.vendor=IBM", \
   com.ibm.ws.security.authentication.UnauthenticatedSubjectService; \
     implementation:=com.ibm.ws.security.authentication.internal.UnauthenticatedSubjectServiceImpl; \
     provide:='com.ibm.ws.security.authentication.UnauthenticatedSubjectService,com.ibm.ws.security.registry.UserRegistryChangeListener'; \
