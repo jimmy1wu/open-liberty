@@ -4,7 +4,7 @@
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-2.0/
- * 
+ *
  * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
@@ -13,6 +13,8 @@
 package com.ibm.ws.security.authentication.internal.cache;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -304,5 +306,33 @@ public class InMemoryAuthCache implements AuthCache, FFDCSelfIntrospectable {
                               "entryLimit = " + entryLimit,
                               "cacheEvictionListenerSet = " + cacheEvictionListenerSet,
                               "timer = " + timer };
+    }
+
+    @Override
+    public synchronized Set<Object> getAllRelatedKeys(Object key) {
+        Set<Object> relatedKeys = new HashSet<>();
+        relatedKeys.addAll(getRelatedKeysFromTable(key, primaryTable));
+        relatedKeys.addAll(getRelatedKeysFromTable(key, secondaryTable));
+        relatedKeys.addAll(getRelatedKeysFromTable(key, tertiaryTable));
+        return relatedKeys;
+    }
+
+    private Set<Object> getRelatedKeysFromTable(Object key, ConcurrentHashMap<Object, Object> table) {
+        Set<Object> relatedKeys = new HashSet<>();
+        Collection<Object> cacheEntries = table.values();
+        for (Object cacheEntry : cacheEntries) {
+            if (!(cacheEntry instanceof Entry)) {
+                continue;
+            }
+            Object cacheObject = ((Entry) cacheEntry).value;
+            if (!(cacheObject instanceof CacheObject)) {
+                continue;
+            }
+            List<Object> lookupKeys = ((CacheObject) cacheObject).getLookupKeys();
+            if (lookupKeys.contains(key)) {
+                relatedKeys.addAll(lookupKeys);
+            }
+        }
+        return relatedKeys;
     }
 }

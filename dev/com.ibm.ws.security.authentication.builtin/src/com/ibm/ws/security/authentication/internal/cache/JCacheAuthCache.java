@@ -4,7 +4,7 @@
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-2.0/
- * 
+ *
  * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
@@ -285,4 +285,14 @@ public class JCacheAuthCache implements AuthCache {
             inMemoryCache.stopEvictionTask();
         }
     }
+
+    @Override
+    public Set<Object> getAllRelatedKeys(Object key) {
+        Cache<Object, Object> cache = getJCache();
+        for (Cache.Entry<Object, Object> entry : cache) {
+
+        }
+        return null;
+    }
+
 }

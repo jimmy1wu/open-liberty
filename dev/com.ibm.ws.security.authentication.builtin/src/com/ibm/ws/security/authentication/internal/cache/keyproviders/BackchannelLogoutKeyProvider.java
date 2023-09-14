@@ -9,7 +9,9 @@
  *******************************************************************************/
 package com.ibm.ws.security.authentication.internal.cache.keyproviders;
 
+import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Set;
 
 import javax.security.auth.Subject;
 
@@ -22,7 +24,7 @@ import com.ibm.ws.security.authentication.utility.SubjectHelper;
  */
 public class BackchannelLogoutKeyProvider implements CacheKeyProvider {
 
-    private static final String[] hashtableProperties = { "backchannel-logout" };
+    private static final String[] hashtableProperties = { "backchannel-logout-sub" };
     private final SubjectHelper subjectHelper = new SubjectHelper();
 
     @Override
@@ -30,16 +32,22 @@ public class BackchannelLogoutKeyProvider implements CacheKeyProvider {
         return getBackchannelLogoutKey(cacheContext.getSubject());
     }
 
-    private String getBackchannelLogoutKey(final Subject subject) {
-        String backchannelLogoutKey = null;
+    private Set<Object> getBackchannelLogoutKey(final Subject subject) {
+        Set<Object> backchannelLogoutKeys = new HashSet<>();
         Hashtable<String, ?> customProperties = subjectHelper.getHashtableFromSubject(subject, hashtableProperties);
         if (customProperties != null) {
-            backchannelLogoutKey = (String) customProperties.get("backchannel-logout");
-            if (backchannelLogoutKey != null && !backchannelLogoutKey.isEmpty()) {
-                customProperties.remove("backchannel-logout");
+            String backchannelLogoutSubKey = (String) customProperties.get("backchannel-logout-sub");
+            if (backchannelLogoutSubKey != null && !backchannelLogoutSubKey.isEmpty()) {
+                backchannelLogoutKeys.add(backchannelLogoutSubKey);
+                customProperties.remove("backchannel-logout-sub");
+            }
+            String backchannelLogoutSidKey = (String) customProperties.get("backchannel-logout-sid");
+            if (backchannelLogoutSidKey != null && !backchannelLogoutSidKey.isEmpty()) {
+                backchannelLogoutKeys.add(backchannelLogoutSidKey);
+                customProperties.remove("backchannel-logout-sid");
             }
         }
-        return backchannelLogoutKey;
+        return backchannelLogoutKeys;
     }
 
 }

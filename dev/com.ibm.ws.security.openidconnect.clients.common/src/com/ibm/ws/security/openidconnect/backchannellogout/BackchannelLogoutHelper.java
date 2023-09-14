@@ -12,10 +12,11 @@
  *******************************************************************************/
 package com.ibm.ws.security.openidconnect.backchannellogout;
 
+import java.util.Set;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.codec.binary.Base64;
 import org.jose4j.jwt.JwtClaims;
 
 import com.ibm.websphere.ras.Tr;
@@ -91,13 +92,16 @@ public class BackchannelLogoutHelper {
 
     void performLogout(JwtClaims logoutTokenClaims) throws BackchannelLogoutException {
         try {
-            String iss = new String(Base64.encodeBase64(logoutTokenClaims.getIssuer().getBytes()));
-            String sub = new String(Base64.encodeBase64(logoutTokenClaims.getSubject().getBytes()));
+            String iss = logoutTokenClaims.getIssuer();
+            String sub = logoutTokenClaims.getSubject();
             String sid = logoutTokenClaims.getClaimValue("sid", String.class);
             if (sid != null && !sid.isEmpty()) {
-                sid = new String(Base64.encodeBase64(sid.getBytes()));
                 authCacheService.remove("backchannel-logout-sid:" + iss + ":" + sid);
             } else {
+                Set<Object> keys = authCacheService.getAllRelatedKeys("backchannel-logout-sub:" + iss + ":" + sub);
+                for (Object key : keys) {
+                    authCacheService.remove(key);
+                }
                 authCacheService.remove("backchannel-logout-sub:" + iss + ":" + sub);
             }
         } catch (Exception e) {

@@ -183,10 +183,13 @@ public class Jose4jUtil {
             }
             if (idToken != null) {
                 customProperties.put(Constants.ID_TOKEN_OBJECT, idToken); // pass back to authenticator
-                String iss = new String(Base64.encodeBase64(idToken.getIssuer().getBytes()));
-                String sub = new String(Base64.encodeBase64(idToken.getSubject().getBytes()));
-                String sid = new String(Base64.encodeBase64(((String) idToken.getClaim("sid")).getBytes()));
-                customProperties.put("backchannel-logout", iss + ":" + sub + ":" + sid);
+                String iss = idToken.getIssuer();
+                String sub = idToken.getSubject();
+                String sid = (String) idToken.getClaim("sid");
+                customProperties.put("backchannel-logout-sub", "backchannel-logout-sub:" + iss + ":" + sub);
+                if (sid != null && !sid.isEmpty()) {
+                    customProperties.put("backchannel-logout-sid", "backchannel-logout-sid:" + iss + ":" + sid);
+                }
             }
 
             //addJWTTokenToSubject(customProperties, idToken, clientConfig);

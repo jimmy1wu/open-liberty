@@ -35,7 +35,6 @@ import com.ibm.ws.security.authentication.cache.CacheContext;
 import com.ibm.ws.security.authentication.cache.CacheEvictionListener;
 import com.ibm.ws.security.authentication.cache.CacheKeyProvider;
 import com.ibm.ws.security.authentication.cache.CacheObject;
-import com.ibm.ws.security.authentication.internal.cache.keyproviders.BackchannelLogoutKeyProvider;
 import com.ibm.ws.security.credentials.CredentialsService;
 import com.ibm.ws.security.notifications.SecurityChangeListener;
 import com.ibm.ws.security.registry.UserRegistryChangeListener;
@@ -115,12 +114,7 @@ public class AuthCacheServiceImpl implements AuthCacheService, UserRegistryChang
     }
 
     private void commonInsert(CacheContext cacheContext, CacheObject cacheObject) throws Exception {
-        CacheKeyProvider backchannelLogoutKeyProvider = null;
         for (CacheKeyProvider provider : cacheKeyProviders) {
-            if (provider instanceof BackchannelLogoutKeyProvider) {
-                backchannelLogoutKeyProvider = provider;
-                continue;
-            }
             Object cacheKey = provider.provideKey(cacheContext);
             if (cacheKey instanceof Set<?>) {
                 for (Object key : (Set<?>) cacheKey) {
@@ -130,29 +124,6 @@ public class AuthCacheServiceImpl implements AuthCacheService, UserRegistryChang
                 addCacheObject(cacheKey, cacheObject);
             }
         }
-        if (backchannelLogoutKeyProvider != null) {
-            String cacheKey1 = (String) backchannelLogoutKeyProvider.provideKey(cacheContext);
-            if (cacheKey1 != null && !cacheKey1.isEmpty()) {
-                String[] issSubAndSid = cacheKey1.split(":");
-                String issAndSubKey = "backchannel-logout-sub:" + issSubAndSid[0] + ":" + issSubAndSid[1];
-                if (!issSubAndSid[2].isEmpty()) {
-                    cacheObject.addLookupKey(issAndSubKey);
-                    addCacheObject("backchannel-logout-sid:" + issSubAndSid[0] + ":" + issSubAndSid[2], cacheObject);
-                }
-                CacheObject oldCacheObject = (CacheObject) cache.get(issAndSubKey);
-                if (oldCacheObject == null) {
-                    oldCacheObject = new CacheObject(null);
-                }
-                for (Object cacheKey : cacheObject.getLookupKeys()) {
-                    if (!((String) cacheKey).startsWith("backchannel-logout-sub")) {
-                        oldCacheObject.addLookupKey(cacheKey);
-                    }
-                }
-                cache.insert(issAndSubKey, oldCacheObject);
-            }
-
-        }
-
     }
 
     private void addCacheObject(Object key, CacheObject cacheObject) {
@@ -190,7 +161,7 @@ public class AuthCacheServiceImpl implements AuthCacheService, UserRegistryChang
             CacheObject cacheObject = getCachedObject(cacheKey);
             if (cacheObject != null) {
                 removeCachedObject(cacheObject);
-                if (((String) cacheKey).startsWith("backchannel-logout-sub")) {
+                if (((String) cacheKey).startsWith("backchannel-logout-sub:")) {
                     cache.remove(cacheKey);
                 }
             }
@@ -200,23 +171,8 @@ public class AuthCacheServiceImpl implements AuthCacheService, UserRegistryChang
     private void removeCachedObject(CacheObject cacheObject) {
         List<Object> lookupKeys = cacheObject.getLookupKeys();
         synchronized (lookupKeys) {
-            List<Object> subObjectLookupKeys = null;
             for (Object lookupKey : lookupKeys) {
-                if (((String) lookupKey).startsWith("backchannel-logout-sub")) {
-                    CacheObject subObject = getCachedObject(lookupKey);
-                    if (subObject != null) {
-                        subObjectLookupKeys = subObject.getLookupKeys();
-                    }
-                    break;
-                }
-            }
-            for (Object lookupKey : lookupKeys) {
-                if (!((String) lookupKey).startsWith("backchannel-logout-sub")) {
-                    if (subObjectLookupKeys != null) {
-                        synchronized (subObjectLookupKeys) {
-                            subObjectLookupKeys.remove(lookupKey);
-                        }
-                    }
+                if (!((String) lookupKey).startsWith("backchannel-logout-sub:")) {
                     cache.remove(lookupKey);
                 }
             }
@@ -384,5 +340,10 @@ public class AuthCacheServiceImpl implements AuthCacheService, UserRegistryChang
     @Override
     public boolean getAutoClearCache() {
         return this.autoClearCache;
+    }
+
+    @Override
+    public Set<Object> getAllRelatedKeys(Object key) {
+        return cache.getAllRelatedKeys(key);
     }
 }
