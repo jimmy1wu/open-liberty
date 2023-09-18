@@ -14,6 +14,7 @@ package com.ibm.ws.security.openidconnect.backchannellogout;
 
 import java.util.Set;
 
+import javax.security.auth.Subject;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -23,6 +24,7 @@ import com.ibm.websphere.ras.Tr;
 import com.ibm.websphere.ras.TraceComponent;
 import com.ibm.ws.ffdc.annotation.FFDCIgnore;
 import com.ibm.ws.security.authentication.cache.AuthCacheService;
+import com.ibm.ws.security.context.SubjectManager;
 import com.ibm.ws.security.openidconnect.backchannellogout.internal.LogoutTokenValidator;
 import com.ibm.ws.security.openidconnect.clients.common.ConvergedClientConfig;
 
@@ -96,7 +98,11 @@ public class BackchannelLogoutHelper {
             String sub = logoutTokenClaims.getSubject();
             String sid = logoutTokenClaims.getClaimValue("sid", String.class);
             if (sid != null && !sid.isEmpty()) {
+                Subject subject = authCacheService.getSubject("backchannel-logout-sid:" + iss + ":" + sid);
+                SubjectManager sm = new SubjectManager();
+                sm.setCallerSubject(subject);
                 authCacheService.remove("backchannel-logout-sid:" + iss + ":" + sid);
+                request.logout();
             } else {
                 Set<Object> keys = authCacheService.getAllRelatedKeys("backchannel-logout-sub:" + iss + ":" + sub);
                 for (Object key : keys) {

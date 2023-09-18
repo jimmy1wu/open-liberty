@@ -111,9 +111,10 @@ public class BackchannelLogoutService implements UnprotectedResourceService {
             ServiceAndServiceReferencePair<OidcServerConfig> configServiceAndRef = servicesWithRefs.next();
             OidcServerConfig config = configServiceAndRef.getService();
             String configId = config.getProviderId();
-            if (isEndpointThatMatchesConfig(requestUri, configId) || isDelegatedLogoutRequestForConfig(requestUri, configId)) {
-                return config;
-            }
+//            if (isEndpointThatMatchesConfig(requestUri, configId) || isDelegatedLogoutRequestForConfig(requestUri, configId)) {
+//                return config;
+//            }
+            return config;
         }
         return null;
     }
