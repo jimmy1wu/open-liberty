@@ -30,11 +30,15 @@ import com.ibm.websphere.ras.Tr;
 import com.ibm.websphere.ras.TraceComponent;
 import com.ibm.websphere.security.WSSecurityException;
 import com.ibm.websphere.security.auth.WSSubject;
+import com.ibm.ws.security.authentication.filter.AuthenticationFilter;
+import com.ibm.ws.security.authentication.filter.internal.AuthFilterConfig;
 import com.ibm.ws.security.oauth20.util.OIDCConstants;
 import com.ibm.ws.security.oauth20.web.OAuth20Request.EndpointType;
+import com.ibm.ws.security.openidconnect.clients.common.OidcClientConfig;
 import com.ibm.ws.security.sso.common.Constants;
 import com.ibm.ws.webcontainer.security.UnprotectedResourceService;
 import com.ibm.ws.webcontainer.security.openidconnect.OidcServerConfig;
+import com.ibm.wsspi.kernel.service.utils.ConcurrentServiceReferenceMap;
 import com.ibm.wsspi.kernel.service.utils.ConcurrentServiceReferenceSet;
 import com.ibm.wsspi.kernel.service.utils.ServiceAndServiceReferencePair;
 
@@ -44,24 +48,48 @@ public class BackchannelLogoutService implements UnprotectedResourceService {
     private static TraceComponent tc = Tr.register(BackchannelLogoutService.class);
 
     private static final ConcurrentServiceReferenceSet<OidcServerConfig> oidcServerConfigRef = new ConcurrentServiceReferenceSet<OidcServerConfig>("oidcServerConfigService");
+    private static final ConcurrentServiceReferenceSet<OidcClientConfig> oidcClientConfigRef = new ConcurrentServiceReferenceSet<OidcClientConfig>("oidcClientConfigService");
+    private static final ConcurrentServiceReferenceMap<String, AuthenticationFilter> authFilterServiceRef = new ConcurrentServiceReferenceMap<String, AuthenticationFilter>("authFilterService");
 
     private static final Pattern ACCESS_ID_PATTERN = Pattern.compile("^[^:]+" + ":" + ".*" + "/" + "([^/]+)$");
 
     @Reference(name = "oidcServerConfigService", service = OidcServerConfig.class, policy = ReferencePolicy.DYNAMIC, cardinality = ReferenceCardinality.MULTIPLE)
-    protected void setOidcClientConfigService(ServiceReference<OidcServerConfig> reference) {
+    protected void setOidcServerConfigService(ServiceReference<OidcServerConfig> reference) {
         oidcServerConfigRef.addReference(reference);
     }
 
-    protected void unsetOidcClientConfigService(ServiceReference<OidcServerConfig> reference) {
+    protected void unsetOidcServerConfigService(ServiceReference<OidcServerConfig> reference) {
         oidcServerConfigRef.removeReference(reference);
+    }
+
+    @Reference(name = "oidcClientConfigService", service = OidcClientConfig.class, policy = ReferencePolicy.DYNAMIC, cardinality = ReferenceCardinality.MULTIPLE)
+    protected void setOidcClientConfigService(ServiceReference<OidcClientConfig> reference) {
+        oidcClientConfigRef.addReference(reference);
+    }
+
+    protected void unsetOidcClientConfigService(ServiceReference<OidcClientConfig> reference) {
+        oidcClientConfigRef.removeReference(reference);
+    }
+
+    @Reference(name = "authFilterService", service = AuthenticationFilter.class, policy = ReferencePolicy.DYNAMIC, cardinality = ReferenceCardinality.MULTIPLE)
+    protected void setAuthFilterService(ServiceReference<AuthenticationFilter> reference) {
+        authFilterServiceRef.putReference((String) reference.getProperty(AuthFilterConfig.KEY_ID), reference);
+    }
+
+    protected void unsetAuthFilterService(ServiceReference<AuthenticationFilter> reference) {
+        authFilterServiceRef.removeReference((String) reference.getProperty(AuthFilterConfig.KEY_ID), reference);
     }
 
     public void activate(ComponentContext cc) {
         oidcServerConfigRef.activate(cc);
+        oidcClientConfigRef.activate(cc);
+        authFilterServiceRef.activate(cc);
     }
 
     public void deactivate(ComponentContext cc) {
         oidcServerConfigRef.deactivate(cc);
+        oidcClientConfigRef.deactivate(cc);
+        authFilterServiceRef.deactivate(cc);
     }
 
     @Override
@@ -111,10 +139,9 @@ public class BackchannelLogoutService implements UnprotectedResourceService {
             ServiceAndServiceReferencePair<OidcServerConfig> configServiceAndRef = servicesWithRefs.next();
             OidcServerConfig config = configServiceAndRef.getService();
             String configId = config.getProviderId();
-//            if (isEndpointThatMatchesConfig(requestUri, configId) || isDelegatedLogoutRequestForConfig(requestUri, configId)) {
-//                return config;
-//            }
-            return config;
+            if (isEndpointThatMatchesConfig(requestUri, configId) || isDelegatedLogoutRequestForConfig(requestUri, configId)) {
+                return config;
+            }
         }
         return null;
     }
@@ -129,11 +156,14 @@ public class BackchannelLogoutService implements UnprotectedResourceService {
      */
     boolean isDelegatedLogoutRequestForConfig(String requestUri, String providerId) {
         String getOpFromSubject = getPropertyFromRunAsSubjectPrivateCredentials(Constants.WSCREDENTIAL_OIDC_OP_USED);
-        if (!providerId.equals(getOpFromSubject)) {
-            return false;
+        if (getOpFromSubject != null && requestUri.endsWith("/" + "backchannel_logout" + "/" + getOpFromSubject)) {
+            return true;
         }
         String samlIdpFromSubject = getPropertyFromRunAsSubjectPrivateCredentials(Constants.WSCREDENTIAL_SAML_IDP_USED);
-        return (samlIdpFromSubject != null && requestUri.endsWith("/" + samlIdpFromSubject + "/" + "slo"));
+        if (samlIdpFromSubject != null && requestUri.endsWith("/" + samlIdpFromSubject + "/" + "slo")) {
+            return true;
+        }
+        return false;
     }
 
     @SuppressWarnings("rawtypes")

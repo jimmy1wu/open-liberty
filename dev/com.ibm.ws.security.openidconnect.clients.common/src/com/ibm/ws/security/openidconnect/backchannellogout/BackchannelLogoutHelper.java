@@ -12,9 +12,11 @@
  *******************************************************************************/
 package com.ibm.ws.security.openidconnect.backchannellogout;
 
+import java.util.Hashtable;
 import java.util.Set;
 
 import javax.security.auth.Subject;
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -88,25 +90,28 @@ public class BackchannelLogoutHelper {
     }
 
     JwtClaims validateLogoutToken(String logoutTokenString) throws BackchannelLogoutException {
-        LogoutTokenValidator validator = new LogoutTokenValidator(clientConfig);
+        LogoutTokenValidator validator = new LogoutTokenValidator(clientConfig, authCacheService);
         return validator.validateToken(logoutTokenString);
     }
 
     void performLogout(JwtClaims logoutTokenClaims) throws BackchannelLogoutException {
+        System.out.println("performLogout");
         try {
             String iss = logoutTokenClaims.getIssuer();
             String sub = logoutTokenClaims.getSubject();
             String sid = logoutTokenClaims.getClaimValue("sid", String.class);
             if (sid != null && !sid.isEmpty()) {
+                System.out.println("sid");
                 Subject subject = authCacheService.getSubject("backchannel-logout-sid:" + iss + ":" + sid);
-                SubjectManager sm = new SubjectManager();
-                sm.setCallerSubject(subject);
                 authCacheService.remove("backchannel-logout-sid:" + iss + ":" + sid);
-                request.logout();
+                logoutSubject(subject);
             } else {
                 Set<Object> keys = authCacheService.getAllRelatedKeys("backchannel-logout-sub:" + iss + ":" + sub);
                 for (Object key : keys) {
+                    System.out.println("sub");
+                    Subject subject = authCacheService.getSubject(key);
                     authCacheService.remove(key);
+                    logoutSubject(subject);
                 }
                 authCacheService.remove("backchannel-logout-sub:" + iss + ":" + sub);
             }
@@ -114,6 +119,22 @@ public class BackchannelLogoutHelper {
             // should not get here
             // sub and sid claims have been validated and invalidating the session(s) does not throw any errors
             // if we ever get here, we should be returning a status code of 501 as per the backchannel logout spec
+        }
+    }
+
+    private void logoutSubject(Subject subject) throws ServletException {
+        if (subject != null) {
+            Set<Hashtable> hashtableCreds = subject.getPrivateCredentials(Hashtable.class);
+            if (hashtableCreds != null) {
+                for (Hashtable hashtable : hashtableCreds) {
+                    hashtable.put("io.openliberty.security.sso.oidc.op", clientConfig.getId());
+                    break;
+                }
+            }
+            SubjectManager sm = new SubjectManager();
+            sm.setCallerSubject(subject);
+            sm.setInvocationSubject(subject);
+            request.logout();
         }
     }
 

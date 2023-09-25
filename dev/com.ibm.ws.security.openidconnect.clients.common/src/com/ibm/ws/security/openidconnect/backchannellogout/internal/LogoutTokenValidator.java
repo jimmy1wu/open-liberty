@@ -17,6 +17,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import javax.security.auth.Subject;
+
 import org.jose4j.jwt.JwtClaims;
 import org.jose4j.jwt.MalformedClaimException;
 import org.jose4j.jwt.NumericDate;
@@ -28,6 +30,7 @@ import com.ibm.websphere.ras.Tr;
 import com.ibm.websphere.ras.TraceComponent;
 import com.ibm.websphere.security.jwt.Claims;
 import com.ibm.ws.ffdc.annotation.FFDCIgnore;
+import com.ibm.ws.security.authentication.cache.AuthCacheService;
 import com.ibm.ws.security.common.crypto.HashUtils;
 import com.ibm.ws.security.openidconnect.backchannellogout.BackchannelLogoutException;
 import com.ibm.ws.security.openidconnect.client.jose4j.util.Jose4jUtil;
@@ -53,6 +56,7 @@ public class LogoutTokenValidator {
 
     private ConvergedClientConfig config = null;
     private Jose4jUtil jose4jUtil = null;
+    private AuthCacheService authCacheService = null;
 
     @Reference
     protected void setSslSupport(SSLSupport sslSupport) {
@@ -69,8 +73,9 @@ public class LogoutTokenValidator {
     public LogoutTokenValidator() {
     }
 
-    public LogoutTokenValidator(ConvergedClientConfig config) {
+    public LogoutTokenValidator(ConvergedClientConfig config, AuthCacheService authCacheService) {
         this.config = config;
+        this.authCacheService = authCacheService;
         jose4jUtil = new Jose4jUtil(SSL_SUPPORT);
     }
 
@@ -88,7 +93,7 @@ public class LogoutTokenValidator {
             verifySubAndOrSidPresent(claims);
             verifyEventsClaim(claims);
             verifyNonceClaimNotPresent(claims);
-            //            doOptionalVerificationChecks(claims);
+            doOptionalVerificationChecks(claims);
 
             return claims;
         } catch (Exception e) {
@@ -189,14 +194,27 @@ public class LogoutTokenValidator {
     }
 
     void doOptionalVerificationChecks(JwtClaims claims) throws MalformedClaimException, BackchannelLogoutException {
-        OidcSessionCache oidcSessionCache = config.getOidcSessionCache();
-
         verifyTokenWithSameJtiNotRecentlyReceived(claims);
+        String iss = claims.getIssuer();
         String sub = claims.getSubject();
         if (sub != null) {
-            verifySubAndSidClaimsMatchRecentSession(claims, oidcSessionCache);
-        } else {
-            verifySidClaimMatchesRecentSession(claims, oidcSessionCache);
+            String key = "backchannel-logout-sub:" + iss + ":" + sub;
+            Subject subject = authCacheService.getSubject(key);
+            if (subject == null) {
+                System.out.println("fail sub check");
+                String errorMsg = Tr.formatMessage(tc, "NO_RECENT_SESSIONS_WITH_CLAIMS", config.getId(), claims.getIssuer(), claims.getSubject(), claims.getStringClaimValue("sid"));
+                throw new BackchannelLogoutException(errorMsg);
+            }
+        }
+        String sid = claims.getClaimValueAsString("sid");
+        if (sid != null) {
+            String key = "backchannel-logout-sid:" + iss + ":" + sid;
+            Subject subject = authCacheService.getSubject(key);
+            if (subject == null) {
+                System.out.println("fail sid check");
+                String errorMsg = Tr.formatMessage(tc, "NO_RECENT_SESSIONS_WITH_CLAIMS", config.getId(), claims.getIssuer(), claims.getSubject(), claims.getStringClaimValue("sid"));
+                throw new BackchannelLogoutException(errorMsg);
+            }
         }
     }
 
