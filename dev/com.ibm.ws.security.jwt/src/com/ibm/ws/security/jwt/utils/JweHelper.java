@@ -170,7 +170,13 @@ public class JweHelper {
         JsonWebEncryption jwe = new JsonWebEncryption();
         jwe.setCompactSerialization(jweString);
         jwe.setKey(decryptionKey);
-        String payload = jwe.getPayload();
+        String payload = null;
+        Object token = ThreadIdentityManager.runAsServer();
+        try {
+            payload = jwe.getPayload();
+        } finally {
+            ThreadIdentityManager.reset(token);
+        }
         if (isJws(payload)) {
             verifyContentType(jwe);
         }

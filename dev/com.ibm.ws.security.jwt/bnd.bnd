@@ -75,7 +75,8 @@ Import-Package: \
     com.ibm.ws.ssl;version="[1.0.0, 2.0)";resolution:=optional, \
     com.ibm.ws.security.wim;version="[1.0.0, 2.0)";resolution:=optional, \
     com.ibm.wsspi.security.wim.model;version="[1.0.0, 2.0)";resolution:=optional, \
-    com.ibm.ws.kernel.productinfo
+    com.ibm.ws.kernel.productinfo, \
+    com.ibm.ws.kernel.security.thread
 
 Private-Package: \
     com.ibm.ws.security.jwt.internal.*, \
