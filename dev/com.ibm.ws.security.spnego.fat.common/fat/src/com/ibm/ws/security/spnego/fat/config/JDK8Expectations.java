@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018, 2022 IBM Corporation and others.
+ * Copyright (c) 2018, 2025 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -164,7 +164,7 @@ public class JDK8Expectations implements JDKExpectationTestClass {
             assertTrue("GSS credentials did not have the correct \"Owner\" value of \"" + SPNEGOConstants.OWNER_STRING + user + "\"",
                        response.contains(SPNEGOConstants.OWNER_STRING + user));
         } else {
-            assertTrue("Response should contain GSS credentials but none were found.", (!response.contains(SPNEGOConstants.GSS_CREDENTIAL_STRING)));
+            assertTrue("Response should not contain GSS credentials but GSS credentials were found.", (!response.contains(SPNEGOConstants.GSS_CREDENTIAL_STRING)));
         }
     }
 
@@ -175,12 +175,16 @@ public class JDK8Expectations implements JDKExpectationTestClass {
     }
 
     @Override
-    public void successfulSpnegoServletCallSSLClient(String response, SSLBasicAuthClient mySslClient) {
+    public void successfulSpnegoServletCallSSLClient(String response, SSLBasicAuthClient mySslClient, boolean areGSSCredPresent) {
         assertTrue("Expected to receive a successful response but found a problem.",
                    mySslClient.verifyResponse(response, InitClass.COMMON_TOKEN_USER, InitClass.COMMON_TOKEN_USER_IS_EMPLOYEE, InitClass.COMMON_TOKEN_USER_IS_MANAGER));
-        responseShouldContaiGSSCredentials(response);
-        assertTrue("GSS credentials did not have the correct \"Owner\" value of \"" + SPNEGOConstants.OWNER_STRING + InitClass.COMMON_TOKEN_USER + "\"",
-                   response.contains(SPNEGOConstants.OWNER_STRING + InitClass.COMMON_TOKEN_USER));
+        if (areGSSCredPresent) {
+            responseShouldContaiGSSCredentials(response);
+            assertTrue("GSS credentials did not have the correct \"Owner\" value of \"" + SPNEGOConstants.OWNER_STRING + InitClass.COMMON_TOKEN_USER + "\"",
+                       response.contains(SPNEGOConstants.OWNER_STRING + InitClass.COMMON_TOKEN_USER));
+        } else {
+            assertTrue("Response should not contain GSS credentials but GSS credentials were found.", (!response.contains(SPNEGOConstants.GSS_CREDENTIAL_STRING)));
+        }
     }
 
     @Override

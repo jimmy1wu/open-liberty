@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2024 IBM Corporation and others.
+ * Copyright (c) 2024, 2025 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -746,8 +746,7 @@ public class ContainerKDCCommonTest {
     /**
      * Performs a call to the SPNEGO servlet that is expected to be successful using the headers provided. The response
      * received is then verified and checked to make sure the subject returned contains the user provided, as well as
-     * the appropriate security roles for the user. The response is also checked for the presence of GSS credentials
-     * for the specified user.
+     * the appropriate security roles for the user.
      *
      * @param headers
      * @param user
@@ -756,7 +755,7 @@ public class ContainerKDCCommonTest {
      * @return
      */
     public String successfulSpnegoServletCall(Map<String, String> headers, String user, boolean isEmployee, boolean isManager) {
-        return successfulSpnegoServletCall(headers, user, isEmployee, isManager, true);
+        return successfulSpnegoServletCall(headers, user, isEmployee, isManager, false);
     }
 
     /**
@@ -807,7 +806,7 @@ public class ContainerKDCCommonTest {
         // SPNEGO servlet call should be verified against the mapped user and the mapped user's roles
         String response = successfulServletCall(SPNEGOConstants.SIMPLE_SERVLET, headers, mapToUser, isMappedUserEmployee, isMappedUserManager);
 
-        expectation.successfulExpectationsSpnegoServletCallForMappedUser(response, spnegoTokenUser);
+        expectation.successfulExpectationsSpnegoServletCall(response, spnegoTokenUser, false);
 
         return response;
     }
@@ -815,7 +814,7 @@ public class ContainerKDCCommonTest {
     /**
      * Performs a call to the SPNEGO servlet from an SSL client that is expected to be successful using the headers
      * provided. The response received is then verified against the user selected to be used in creating the common
-     * SPNEGO token and checked for the presence of GSS credentials.
+     * SPNEGO token.
      *
      * @param headers
      * @return
@@ -828,7 +827,7 @@ public class ContainerKDCCommonTest {
 
         Log.info(c, name.getMethodName(), "Accessing the protected resource using an SSL client");
         String response = mySslClient.accessProtectedServletWithValidHeaders(SPNEGOConstants.SIMPLE_SERVLET, headers);
-        expectation.successfulSpnegoServletCallSSLClient(response, mySslClient);
+        expectation.successfulSpnegoServletCallSSLClient(response, mySslClient, false);
         mySslClient.resetClientState();
         return response;
     }

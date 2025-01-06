@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018, 2020 IBM Corporation and others.
+ * Copyright (c) 2018, 2025 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -82,7 +82,7 @@ public abstract interface JDKExpectationTestClass {
 
     public void successfulExpectationsSpnegoServletCallForMappedUser(String response, String spnegoTokenUser);
 
-    public void successfulSpnegoServletCallSSLClient(String response, SSLBasicAuthClient mySslClient);
+    public void successfulSpnegoServletCallSSLClient(String response, SSLBasicAuthClient mySslClient, boolean areGSSCredPresent);
 
     public void unsuccesfulSpnegoServletCall(String response, String ownerInformation);
 

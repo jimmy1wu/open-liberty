@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2021 IBM Corporation and others.
+ * Copyright (c) 2021, 2025 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -813,7 +813,7 @@ public class ApacheKDCCommonTest {
 
         Log.info(c, name.getMethodName(), "Accessing the protected resource using an SSL client");
         String response = mySslClient.accessProtectedServletWithValidHeaders(SPNEGOConstants.SIMPLE_SERVLET, headers);
-        expectation.successfulSpnegoServletCallSSLClient(response, mySslClient);
+        expectation.successfulSpnegoServletCallSSLClient(response, mySslClient, true);
         mySslClient.resetClientState();
         return response;
     }
