@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.Map;
+import java.time.Instant;
 
 import javax.crypto.BadPaddingException;
 
@@ -69,6 +70,9 @@ public class LTPAToken2 implements Token, Serializable {
 
         m1 = CryptoUtils.getMessageDigestForLTPA();
         m2 = CryptoUtils.getMessageDigestForLTPA();
+        System.out.print("$JIMMY MD1 " + m1.getAlgorithm());
+        System.out.print("$JIMMY MD2 " + m2.getAlgorithm());
+
 
         md1JCE = m1;
         md2JCE = m2;
@@ -192,7 +196,10 @@ public class LTPAToken2 implements Token, Serializable {
             toBeEnc[i] = timeAndSign[i - accessID.length];
         }
         try {
+            long beforeTime = Instant.now().toEpochMilli();
             encryptedBytes = LTPAKeyUtil.encrypt(toBeEnc, sharedKey, cipher);
+            long afterTime = Instant.now().toEpochMilli();
+            System.out.println("$PERF LTPATOKEN2 ENC: " + (afterTime - beforeTime));
         } catch (Exception e) {
             if (TraceComponent.isAnyTracingEnabled() && tc.isEventEnabled()) {
                 Tr.event(this, tc, "Error encrypting; " + e);
@@ -212,7 +219,10 @@ public class LTPAToken2 implements Token, Serializable {
     private final void decrypt() throws InvalidTokenException {
         byte[] tokenData;
         try {
+            long beforeTime = Instant.now().toEpochMilli();
             tokenData = LTPAKeyUtil.decrypt(encryptedBytes.clone(), sharedKey, cipher);
+            long afterTime = Instant.now().toEpochMilli();
+            System.out.println("$PERF LTPATOKEN2 DEC: " + (afterTime - beforeTime));
 
             checkTokenBytes(tokenData);
             String UTF8TokenString = toUTF8String(tokenData);
@@ -283,8 +293,10 @@ public class LTPAToken2 implements Token, Serializable {
         byte[][] rsaPrivKey = LTPAKeyUtil.getRawKey(privKey);
         LTPAKeyUtil.setRSAKey(rsaPrivKey);
         byte[] signature;
+        long beforeTime = Instant.now().toEpochMilli();
         signature = LTPAKeyUtil.signISO9796(rsaPrivKey, data, 0, data.length);
-
+        long afterTime = Instant.now().toEpochMilli();
+        System.out.println("$PERF SIGN: " + (afterTime - beforeTime));
         return signature;
     }
 
@@ -309,7 +321,11 @@ public class LTPAToken2 implements Token, Serializable {
             data = md2JCE.digest(msg);
         }
         byte[][] rsaPubKey = LTPAKeyUtil.getRawKey(pubKey);
-        return LTPAKeyUtil.verifyISO9796(rsaPubKey, data, 0, data.length, signature, 0, signature.length);
+        long beforeTime = Instant.now().toEpochMilli();
+        boolean ret = LTPAKeyUtil.verifyISO9796(rsaPubKey, data, 0, data.length, signature, 0, signature.length);
+        long afterTime = Instant.now().toEpochMilli();
+        System.out.println("$PERF VERIFY: " + (afterTime - beforeTime));
+        return ret;
     }
 
     /** {@inheritDoc} */

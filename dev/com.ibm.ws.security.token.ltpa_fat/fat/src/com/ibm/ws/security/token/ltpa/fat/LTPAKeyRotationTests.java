@@ -1716,11 +1716,11 @@ public class LTPAKeyRotationTests {
         if (fipsEnabled) {
             contents = new HashMap<String, String>() {
                 {
-                    put("com.ibm.websphere.ltpa.3DESKey", "q2yFKBh8u2h1OcI7UQuHCvIpo40WDxYDrfKLvztDrYvoca+oLO1m1HG/BpSX13GR");
+                    put("com.ibm.websphere.ltpa.3DESKey", "zYhvRRwEOJyz65nWWtrfPBXtxekUcBLJeLg/Ws9WinRkIsnFskPUrkT6qH/gEzlC");
                     put("com.ibm.websphere.ltpa.PrivateKey",
-                        "IuqjEqWvUrAK90pArV9y2k6XjnJKbSpuUWHUd8qAuVvSBPeoQCluCPWQ3JOq1dkMPexSd/ZUNf03zFQ9XuJjanXPCJiPavamu6xzUsbtXwHA5ReqLWdmeapAB15uOpl5EjKTk3EdDH29sGvs2vzYyzu1uWPVWglIixICb6cs5QnWIIUl+Qs7vmY5S9TRoHQ8Y+npiByNopll5O9K4iPW0dy+0Wm6h/xoh49xGkwyYRHV2HX2/7RRf6y7TofkIdYS9WALb15g+tSR0/IJU/AuXHcp+MYbhU/dRWKx6f5Dconc1pu/QT0vKWIuakTnEJNHSeUzlglKK0pyD9yAjcVxPR3x0qBOKK0ss8N1D0xgID98VOGNlXF9SKjrW7rDqf2P5xP1lRrRsXPklVJN5G4p+DQn2oSnVWV1xp791uOb3Ub5HFK4c4Uv0PPKYIOhB2cAplLh+DV0BJkH6zWxj7Aqt9jXB6zC4bZrmMQ5Q9KlKJUF+LjXYy7uj5avVYt7vjcp7wM3DCr+1XfQKnYbjColRG7N6MzhN3m1aN243mgswpz+5uQHQoyNqpFh1yoqmQdo1Tq8EMgQRpO//e+yhN6alZ6P+fV6TuyK7tZb2wHXJXZo3neULAKeC9i8pwt9IDiu9Ey6bBEhs5NpZakVZqdqgU6SX1wANVe5Cwy8IjXboVNfXmiTnJnFIAT6RdohMvoJ");
+                        "A235QV18ZNJdW2UPbppAMhb7cZ3p+9JNmw7eRo30Iss5KOwmWh00B6m/V3HBec/aMtR2Y2bSiUXsjqX7M+bX87O9U7V19ae7LVAjp7IL4SnhtXrPm5vtfEGxwlNPBuCDOXIoCvcPera7JtIwlkmU/PIXVc16bSahNe0k0MUFImtuiFqCtf5J2L0UblGbS+ovZkOiTkMDjOqoVT8Axb/joANmaBj3PNlmeSOZd68533sLHuez3wStSlqc4+GKFQi6LHsop0cg4Pb/sO2VO2pol7vlZoYD6AX5B6QYV3ct8HkjlqRkIomY/OKHf+KcMjUm6hPqkW4VHqvE4FQJRTdTXjuRfIG+2P+h/dyZrLwMi7HCmBrKnhzp1iETkZ31mly181NIO9UywBJXUka0cFTn11cQ8cyzxFZ7Q7tqs4WQTDhUHWBsDj9kq0yuGrXGiTRrTsdL7hd8SLtt/6BJtJGVLJSHU9Bk8nc2mm6VR2PyxlR44QLbvthbn4RAYl3BrBj6UJmkiWgi/VUd6qayhkSxF+Cd3xR7i5Q6kE9Gcde4nKatpp/wKHPcubim/ahyx57ZYVDRofFMFMqNvRZZMZalRNJhbEFAArUqSBcr1KV/Y/5ZE4AKEsHDCVlcUw1T+B7wO8Fu/KZe8ryx01xQlyfo2VQR5UbaI+YI56k8sJob2vNhYz7Q/4con7fT+z3mMNFC");
                     put("com.ibm.websphere.ltpa.PublicKey",
-                        "ANledrwCYpbNbOa1YzBSEP3EmhnznGXKzXlJTU8p0FFMmItr4emBlB78Nw+2vOW0gUb4rSdyqsj6T2QbR3xGhcs8M8AVLHppgnfLOiWlXFicSMemL3LGEkHAF0XdBpwgQo9/RzhJyLT9IzyGkyJWBkVD2ZnbM78JNN3aBeoPKobKsa9779Iz4oU14flCI9E7t6rBpZsCt8ygWP45yq6OgRCct4b31ZXkWL9zxLnSdmNEO99ct0WlcCV6+K5J9WGQBMjPWcNQ2a5w6FJk2iFNua/0hDwWd3hv0tOY81icIcob6ZyHxkJJhfYy6bs78FXr9QXQwafTRY7VrQn3VF//wVMBAAE\\=");
+                        "AKFwTqEma02xjv97FkTZwcEHmqD8Yzz9yGRlm4Yc1nl/3JWRbgXZEADGNSiPWhnZiUnyCVQ0YchHO9m6UKagh+dc19qNrIT1+PI5CO88AzN/C6VJ8hJSfyyxFHSjymdYT3vktwWG0eJmad7YNnNq7YbTf1J6YabJDxetjydHhVPfm2o2jC1YIxWUYkGcK4W3K43p6VjNF8C9LUWoVadKKYwf05Bh+l2+i7opc3UoaIonFz18DPl1BtCMVCIFqptMDhHAJffNuyA5vNPqL1mpzI7M6R3hEXLCL2DDfez+PncXD5Z47bj1pyLVlksa0tys0pvQ/BcqGF1IzGXiT2gMVj8BAAE\\=");
                 }
             };
         } else {

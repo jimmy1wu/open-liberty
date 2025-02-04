@@ -2087,8 +2087,9 @@ final class AuditCrypto {
     private static SecretKey constructSecretKey(byte[] key, String cipher) throws InvalidKeyException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchProviderException {
         SecretKey sKey = null;
         if (cipher.indexOf("AES") != -1) { //This code for FIPS 140-3
-            // 16 bytes = 128 bit key
-            sKey = new SecretKeySpec(key, 0, 16, "AES");
+            // 32 bytes = 256 bit key, 16 bytes = 128 bit key
+            int keyLength = fips140_3Enabled ? 32 : 16;
+            sKey = new SecretKeySpec(key, 0, keyLength, "AES");
         } else {
             DESedeKeySpec kSpec = new DESedeKeySpec(key);
             SecretKeyFactory kFact = null;

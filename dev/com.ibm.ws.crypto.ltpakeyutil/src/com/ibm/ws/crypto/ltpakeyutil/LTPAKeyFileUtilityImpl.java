@@ -20,6 +20,7 @@ import java.security.AccessController;
 import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
 import java.util.Properties;
+import java.time.Instant;
 
 import com.ibm.ws.common.encoder.Base64Coder;
 
@@ -52,9 +53,19 @@ public class LTPAKeyFileUtilityImpl implements LTPAKeyFileUtility {
             LTPAKeyPair pair = LTPADigSignature.generateLTPAKeyPair();
             byte[] publicKey = pair.getPublic().getEncoded();
             byte[] privateKey = pair.getPrivate().getEncoded();
+
+            long beforeTime1 = Instant.now().toEpochMilli();
             byte[] encryptedPrivateKey = encryptor.encrypt(privateKey);
+            long afterTime1 = Instant.now().toEpochMilli();
+            System.out.println("$PERF ENC PRIVATE KEY: " + (afterTime1 - beforeTime1));
+            
+            
             byte[] sharedKey = LTPACrypto.generateSharedKey(); // key length is 32 bytes (256 bits) for FIPS (AES), 24 bytes (192 bits) for non-FIPS (3DES)
+
+            long beforeTime = Instant.now().toEpochMilli();
             byte[] encryptedSharedKey = encryptor.encrypt(sharedKey);
+            long afterTime = Instant.now().toEpochMilli();
+            System.out.println("$PERF ENC SHARED KEY: " + (afterTime - beforeTime));
 
             String tmpShared = Base64Coder.base64EncodeToString(encryptedSharedKey);
             String tmpPrivate = Base64Coder.base64EncodeToString(encryptedPrivateKey);

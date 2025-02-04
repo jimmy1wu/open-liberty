@@ -34,7 +34,9 @@ public class KeyEncryptor {
 	 */
 	public KeyEncryptor(byte[] password) throws Exception {
 		MessageDigest md = MessageDigest.getInstance(CryptoUtils.MESSAGE_DIGEST_ALGORITHM);
+		System.out.println("$JIMMY key encryptor alg " + CryptoUtils.MESSAGE_DIGEST_ALGORITHM);
 		byte[] digest = md.digest(password);
+		System.out.println("$JIMMY digest length " + digest.length);
 		key = new byte[size];
 		System.arraycopy(digest, 0, key, 0, digest.length);
 		if (!fipsEnabled) {

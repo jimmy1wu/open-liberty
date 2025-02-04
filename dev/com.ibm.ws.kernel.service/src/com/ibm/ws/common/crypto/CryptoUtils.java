@@ -19,6 +19,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.time.Instant;
 
 import com.ibm.websphere.ras.Tr;
 import com.ibm.websphere.ras.TraceComponent;
@@ -313,10 +314,10 @@ public class CryptoUtils {
         try {
             if (fipsEnabled) {
                 if (isSemeruFips()) {
-                    md1 = MessageDigest.getInstance(MESSAGE_DIGEST_ALGORITHM_SHA256,
+                    md1 = MessageDigest.getInstance(MESSAGE_DIGEST_ALGORITHM_SHA512,
                                                     OPENJCE_PLUS_FIPS_NAME);
                 } else {
-                    md1 = MessageDigest.getInstance(MESSAGE_DIGEST_ALGORITHM_SHA256,
+                    md1 = MessageDigest.getInstance(MESSAGE_DIGEST_ALGORITHM_SHA512,
                                                     IBMJCE_PLUS_FIPS_NAME);
                 }
             } else if (CryptoUtils.isIBMJCEAvailable()) {

@@ -21,6 +21,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.time.Instant;
 
 import com.ibm.websphere.crypto.PasswordUtil;
 import com.ibm.websphere.ras.Tr;
@@ -244,7 +245,10 @@ public class LTPAKeyInfoManager {
                 throw new IllegalArgumentException(formattedMessage);
             } else {
                 byte[] keyEncoded = Base64Coder.base64DecodeString(secretKeyStr);
+                long beforeTime = Instant.now().toEpochMilli();
                 secretKey = encryptor.decrypt(keyEncoded);
+                long afterTime = Instant.now().toEpochMilli();
+                System.out.println("$PERF DEC SHAREDKEY: " + (afterTime - beforeTime));
             }
             // Private key
             if ((privateKeyStr == null) || (privateKeyStr.length() == 0)) {
@@ -253,7 +257,10 @@ public class LTPAKeyInfoManager {
                 throw new IllegalArgumentException(formattedMessage);
             } else {
                 byte[] keyEncoded = Base64Coder.base64DecodeString(privateKeyStr);
+                long beforeTime = Instant.now().toEpochMilli();
                 privateKey = encryptor.decrypt(keyEncoded);
+                long afterTime = Instant.now().toEpochMilli();
+                System.out.println("$PERF DEC PRIVATEKEY: " + (afterTime - beforeTime));
             }
             // Public key
             if ((publicKeyStr == null) || (publicKeyStr.length() == 0)) {

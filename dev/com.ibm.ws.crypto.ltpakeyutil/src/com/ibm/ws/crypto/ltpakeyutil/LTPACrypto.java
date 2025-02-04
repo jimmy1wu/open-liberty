@@ -32,6 +32,8 @@ import java.security.spec.RSAPublicKeySpec;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.concurrent.ConcurrentHashMap;
+import java.time.Instant;
+
 
 import javax.crypto.Cipher;
 import javax.crypto.NoSuchPaddingException;
@@ -595,8 +597,10 @@ final class LTPACrypto {
             throws InvalidKeyException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchProviderException {
         SecretKey sKey = null;
         if (cipher.indexOf("AES") != -1) {
-            // 16 bytes = 128 bit key
-            sKey = new SecretKeySpec(key, 0, 16, "AES");
+            // 32 bytes = 256 bit key, 16 bytes = 128 bit key
+            int keyLength = fipsEnabled ? 32 : 16;
+            System.out.println("$JIMMY KEY LENGTH " + key.length + " -> " + keyLength);
+            sKey = new SecretKeySpec(key, 0, keyLength, "AES");
         } else {
             DESedeKeySpec kSpec = new DESedeKeySpec(key);
             SecretKeyFactory kFact = null;
@@ -656,8 +660,18 @@ final class LTPACrypto {
     @Trivial
     protected static final byte[] encrypt(byte[] data, byte[] key, String cipher) throws Exception {
         SecretKey sKey = constructSecretKey(key, cipher);
+
+        long beforeTime = Instant.now().toEpochMilli();
         Cipher ci = createCipher(Cipher.ENCRYPT_MODE, key, cipher, sKey);
-        return ci.doFinal(data);
+        long afterTime = Instant.now().toEpochMilli();
+        System.out.println("$PERF LTPACRYPTO ENC CREATECIPHER: " + (afterTime - beforeTime));
+
+        long beforeTime1 = Instant.now().toEpochMilli();
+        byte[] ret = ci.doFinal(data);
+        long afterTime1 = Instant.now().toEpochMilli();
+        System.out.println("$PERF LTPACRYPTO ENC DOFINAL: " + (afterTime1 - beforeTime1));
+
+        return ret;
     }
 
     /**
@@ -671,8 +685,18 @@ final class LTPACrypto {
     @Trivial
     protected static final byte[] decrypt(byte[] msg, byte[] key, String cipher) throws Exception {
         SecretKey sKey = constructSecretKey(key, cipher);
+
+        long beforeTime = Instant.now().toEpochMilli();
         Cipher ci = createCipher(Cipher.DECRYPT_MODE, key, cipher, sKey);
-        return ci.doFinal(msg);
+        long afterTime = Instant.now().toEpochMilli();
+        System.out.println("$PERF LTPACRYPTO DEC CREATECIPHER: " + (afterTime - beforeTime));
+
+        long beforeTime1 = Instant.now().toEpochMilli();
+        byte[] ret = ci.doFinal(msg);
+        long afterTime1 = Instant.now().toEpochMilli();
+        System.out.println("$PERF LTPACRYPTO DEC DOFINAL: " + (afterTime1 - beforeTime1));
+
+        return ret;
     }
 
     /*
