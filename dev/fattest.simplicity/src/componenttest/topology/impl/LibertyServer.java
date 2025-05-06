@@ -244,6 +244,8 @@ public class LibertyServer implements LogMonitorClient {
 
     //FIPS 140-3
     protected static final boolean GLOBAL_FIPS_140_3 = Boolean.parseBoolean(PrivHelper.getProperty("global.fips_140-3", "false"));
+    //FIPS 140-2
+    protected static final boolean GLOBAL_FIPS_140_2 = Boolean.parseBoolean(PrivHelper.getProperty("global.fips_140-2", "false"));
 
     protected static final String GLOBAL_TRACE = PrivHelper.getProperty("global.trace.spec", "").trim();
     protected static final String GLOBAL_JVM_ARGS = PrivHelper.getProperty("global.jvm.args", "").trim();
@@ -1729,7 +1731,7 @@ public class LibertyServer implements LogMonitorClient {
 
         //FIPS 140-3
         // if we have FIPS 140-3 enabled, and the matched java/platform, add JVM Arg
-        if (isFIPS140_3EnabledAndSupported(info)) {
+        if (isFIPS140_3EnabledAndSupported(info) || isFIPS140_2EnabledAndSupported(info)) {
             JVM_ARGS += getJvmArgString(this.getFipsJvmOptions(info, false));
         }
 
@@ -7841,6 +7843,32 @@ public class LibertyServer implements LogMonitorClient {
         return isFIPS140_3EnabledAndSupported(info, true);
     }
 
+    // FIPS 140-2
+    public boolean isFIPS140_2EnabledAndSupported(JavaInfo serverJavaInfo, boolean logOutput) throws IOException {
+        String methodName = "isFIPS140_2EnabledAndSupported";
+        boolean isIBMJVM8 = (serverJavaInfo.majorVersion() == 8) && (serverJavaInfo.VENDOR == Vendor.IBM);
+        if (logOutput && GLOBAL_FIPS_140_2) {
+            Log.info(c, methodName, "Liberty server is running JDK version: " + serverJavaInfo.majorVersion()
+                                    + " and vendor: " + serverJavaInfo.VENDOR);
+            if (isIBMJVM8) {
+                Log.info(c, methodName, "global build properties FIPS_140_2 is set for server " + getServerName() +
+                                        " and IBM java 8 is available to run with FIPS 140-2 enabled.");
+            } else {
+                Log.info(c, methodName, "The global build properties FIPS_140_2 is set for server " + getServerName() +
+                                        ",  but no IBM java 8 on liberty server to run with FIPS 140-2 enabled.");
+            }
+        }
+        return GLOBAL_FIPS_140_2 && (isIBMJVM8);
+    }
+
+    public boolean isFIPS140_2EnabledAndSupported() throws IOException {
+        return isFIPS140_2EnabledAndSupported(JavaInfo.forServer(this), true);
+    }
+
+    public boolean isFIPS140_2EnabledAndSupported(JavaInfo info) throws IOException {
+        return isFIPS140_2EnabledAndSupported(info, true);
+    }
+
     /**
      * No longer using bootstrap properties to update server config for database rotation.
      * Instead look at using the fattest.databases module
@@ -8097,6 +8125,18 @@ public class LibertyServer implements LogMonitorClient {
             if (includeGlobalArgs) {
                 opts.put("-Dglobal.fips_140-3", "true");
             }
+        } else if (isFIPS140_2EnabledAndSupported(info, false)) {
+            if (info.majorVersion() == 8) {
+                Log.info(c, "getFipsJvmOptions", "FIPS 140-2 global build properties is set for server "
+                                                 + getServerName()
+                                                 + " with IBM Java 8, adding required JVM arguments to run with FIPS 140-2 enabled");
+                opts.put("-Dcom.ibm.jsse2.usefipsprovider", "true");
+                opts.put("-Dcom.ibm.jsse2.usefipsProviderName", "IBMJCEPlusFIPS");
+                opts.put("-Dcom.ibm.fips.mode", "140-2");
+            }
+            if (includeGlobalArgs) {
+                opts.put("-Dglobal.fips_140-2", "true");
+            }
         }
         return opts;
     }
@@ -8105,7 +8145,7 @@ public class LibertyServer implements LogMonitorClient {
         // Enable FIPS on members via jvm.options file. This way when the controller starts / joins members
         // the appropriate FIPS jvm arguments will be configured.
         JavaInfo info = JavaInfo.forServer(this);
-        if (isFIPS140_3EnabledAndSupported(info)) {
+        if (isFIPS140_3EnabledAndSupported(info) || isFIPS140_2EnabledAndSupported(info)) {
             this.configureLTPAKeys(info);
             Map<String, String> jvm_opts = this.getJvmOptionsAsMap();
             Map<String, String> combined = new HashMap(jvm_opts);
