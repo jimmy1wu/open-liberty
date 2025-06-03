@@ -89,6 +89,8 @@ public abstract class AbstractOidcEndpointServices {
     protected static final String HTTP_METHOD_DELETE = "DELETE";
 
     protected static final String ALG_MD5 = "MD5";
+    protected static final String ALG_SHA256 = "SHA-256";
+
 
     private static TraceComponent tc = Tr.register(AbstractOidcEndpointServices.class);
 
