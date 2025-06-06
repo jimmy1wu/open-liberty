@@ -46,4 +46,15 @@
         <param-name>javax.faces.VALIDATE_EMPTY_FIELDS</param-name>
         <param-value>true</param-value>
     </context-param>
+
+    <context-param>
+        <param-name>org.apache.myfaces.MAC_ALGORITHM</param-name>
+        <param-value>HmacSHA256</param-value>
+    </context-param>
+
+    <context-param>
+        <param-name>org.apache.myfaces.ALGORITHM</param-name>
+        <param-value>AES</param-value>
+    </context-param>
+
 </web-app>

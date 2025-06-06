@@ -34,4 +34,14 @@
         <welcome-file>index.jsf</welcome-file>
     </welcome-file-list>
 
+    <context-param>
+        <param-name>org.apache.myfaces.MAC_ALGORITHM</param-name>
+        <param-value>HmacSHA256</param-value>
+    </context-param>
+
+    <context-param>
+        <param-name>org.apache.myfaces.ALGORITHM</param-name>
+        <param-value>AES</param-value>
+    </context-param>
+
 </web-app>
