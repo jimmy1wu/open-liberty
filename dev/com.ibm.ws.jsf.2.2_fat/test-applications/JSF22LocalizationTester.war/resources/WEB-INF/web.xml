@@ -41,6 +41,16 @@
         <param-value>false</param-value>
     </context-param>
 
+    <context-param>
+        <param-name>org.apache.myfaces.MAC_ALGORITHM</param-name>
+        <param-value>HmacSHA256</param-value>
+    </context-param>
+
+    <context-param>
+        <param-name>org.apache.myfaces.ALGORITHM</param-name>
+        <param-value>AES</param-value>
+    </context-param>
+
     <!-- Temp solution for defect 294367; need to look into o.a.m.ALWAYS_FORCE_SESSION_CREATION for 4.0 -->
     <context-param>
         <param-name>jakarta.faces.FACELETS_BUFFER_SIZE</param-name>

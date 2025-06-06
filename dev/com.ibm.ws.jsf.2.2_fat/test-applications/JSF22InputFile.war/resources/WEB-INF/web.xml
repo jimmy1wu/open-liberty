@@ -37,6 +37,16 @@
         <welcome-file>fileUploadTest.jsf</welcome-file>
     </welcome-file-list>
 
+    <context-param>
+        <param-name>org.apache.myfaces.MAC_ALGORITHM</param-name>
+        <param-value>HmacSHA256</param-value>
+    </context-param>
+
+    <context-param>
+        <param-name>org.apache.myfaces.ALGORITHM</param-name>
+        <param-value>AES</param-value>
+    </context-param>
+
     <!-- Required for testAjaxInputFile to ensure any errors are alerted  -->
     <context-param>
         <param-name>javax.faces.PROJECT_STAGE</param-name>

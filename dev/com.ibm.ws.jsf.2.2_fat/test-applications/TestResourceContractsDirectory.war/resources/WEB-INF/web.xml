@@ -28,6 +28,14 @@
         <param-name>javax.faces.WEBAPP_CONTRACTS_DIRECTORY</param-name>
         <param-value>myContracts</param-value>
     </context-param>
+    	<context-param>
+    	<param-name>org.apache.myfaces.MAC_ALGORITHM</param-name>
+  		<param-value>HmacSHA256</param-value>
+  	</context-param>
+	<context-param>
+		<param-name>org.apache.myfaces.ALGORITHM</param-name>
+		<param-value>AES</param-value>
+	</context-param>
     <servlet>
         <servlet-name>Faces Servlet</servlet-name>
         <servlet-class>javax.faces.webapp.FacesServlet</servlet-class>
