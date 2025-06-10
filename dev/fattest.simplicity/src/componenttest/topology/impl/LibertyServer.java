@@ -334,6 +334,8 @@ public class LibertyServer implements LogMonitorClient {
     private String openLibertyVersion;
 
     private String archiveMarker = null;
+    
+    private boolean serverLevelFipsEnabled = GLOBAL_FIPS_140_3;
 
     /**
      * This returns whether or not debugging is "programatically" allowed
@@ -7819,6 +7821,7 @@ public class LibertyServer implements LogMonitorClient {
         if (logOutput && GLOBAL_FIPS_140_3) {
             Log.info(c, methodName, "Liberty server is running JDK version: " + serverJavaInfo.majorVersion()
                                     + " and vendor: " + serverJavaInfo.VENDOR);
+            Log.info(c, methodName, "Server level fips property is : " + serverLevelFipsEnabled);
             if (isIBMJVM8) {
                 Log.info(c, methodName, "global build properties FIPS_140_3 is set for server " + getServerName() +
                                         " and IBM java 8 is available to run with FIPS 140-3 enabled.");
@@ -7830,7 +7833,7 @@ public class LibertyServer implements LogMonitorClient {
                                            ",  but no IBM java on liberty server to run with FIPS 140-3 enabled.");
             }
         }
-        return GLOBAL_FIPS_140_3 && (isIBMJVM8 || isIBMJVMGreaterOrEqualTo11);
+        return GLOBAL_FIPS_140_3 && (isIBMJVM8 || isIBMJVMGreaterOrEqualTo11) && serverLevelFipsEnabled;
     }
 
     public boolean isFIPS140_3EnabledAndSupported() throws IOException {
@@ -7839,6 +7842,10 @@ public class LibertyServer implements LogMonitorClient {
 
     public boolean isFIPS140_3EnabledAndSupported(JavaInfo info) throws IOException {
         return isFIPS140_3EnabledAndSupported(info, true);
+    }
+    
+    public void setServerLevelFips(boolean enabled) {
+        serverLevelFipsEnabled = enabled;
     }
 
     public boolean isFIPS140_2EnabledAndSupported(JavaInfo serverJavaInfo, boolean logOutput) throws IOException {
