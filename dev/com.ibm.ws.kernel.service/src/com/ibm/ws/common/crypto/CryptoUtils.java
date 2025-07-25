@@ -64,6 +64,7 @@ public class CryptoUtils {
     public static boolean unitTest = false;
     public static boolean fipsChecked = false;
     public static boolean fips140_3Checked = false;
+    public static boolean semeruFips140_3Checked = false;
 
     public static boolean isEnhancedSecurity = false;
     public static boolean isEnhancedSecurityChecked = false;
@@ -153,6 +154,8 @@ public class CryptoUtils {
 
     private static boolean fips140_3Enabled = isFips140_3Enabled();
     private static boolean fipsEnabled = fips140_3Enabled;
+
+    private static boolean semeruFips140_3Enabled = isSemeruFips140_3Enabled();
 
     /** Algorithm used for encryption in LTPA and audit. */
     public static final String ENCRYPT_ALGORITHM = ENCRYPT_ALGORITHM_AES;
@@ -434,8 +437,22 @@ public class CryptoUtils {
         return isEnhancedSecurity;
     }
 
+    /**
+     * Checks if Beta is enabled and FIPS 140-3 is enabled for either Semeru or IBM JDK.
+     *
+     * @return true if Beta is enabled and FIPS 140-3 is enabled for either Semeru or IBM JDK. Otherwise, false.
+     */
     public static boolean isFips140_3EnabledWithBetaGuard() {
         return isRunningBetaMode() && isFips140_3Enabled();
+    }
+
+    /**
+     * Checks if Beta is enabled and FIPS 140-3 is enabled for Semeru.
+     *
+     * @return true if Beta is enabled and FIPS 140-3 is enabled for Semeru. Otherwise, false.
+     */
+    public static boolean isSemeruFips140_3EnabledWithBetaGuard() {
+        return isRunningBetaMode() && isSemeruFips140_3Enabled();
     }
 
     private static boolean isRunningBetaMode() {
@@ -451,6 +468,11 @@ public class CryptoUtils {
         }
     }
 
+    /**
+     * Checks if FIPS 140-3 is enabled for either Semeru or IBM JDK.
+     *
+     * @return true if FIPS 140-3 is enabled for either Semeru or IBM JDK. Otherwise false.
+     */
     public static boolean isFips140_3Enabled() {
         if (fips140_3Checked)
             return fips140_3Enabled;
@@ -481,6 +503,31 @@ public class CryptoUtils {
 
             fips140_3Checked = true;
             return fips140_3Enabled;
+        }
+    }
+
+    /**
+     * Checks if FIPS 140-3 is enabled for Semeru.
+     *
+     * @return true if FIPS 140-3 is enabled for Semeru. Otherwise, false.
+     */
+    public static boolean isSemeruFips140_3Enabled() {
+        if (semeruFips140_3Checked)
+            return semeruFips140_3Enabled;
+        else {
+            semeruFips140_3Enabled = isFips140_3Enabled() && isSemeruFips();
+
+            if (!semeruFips140_3Enabled) {
+                semeruFips140_3Enabled = useEnhancedSecurityAlgorithms();
+                if (semeruFips140_3Enabled) {
+                    if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
+                        Tr.debug(tc, "isSemeruFips140_3Enabled set to true by useEnhancedSecurityAlgorithms()");
+                    }
+                }
+            }
+
+            semeruFips140_3Checked = true;
+            return semeruFips140_3Enabled;
         }
     }
 
