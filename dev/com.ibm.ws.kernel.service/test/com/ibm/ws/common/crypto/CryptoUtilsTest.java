@@ -671,4 +671,74 @@ public class CryptoUtilsTest {
         }
     }
 
+    @Test
+    public void testSemeruFips140_3Enabled_isFips140_3Enabled_true_isSemeruFips_true() {
+        try (MockedStatic<CryptoUtils> mock = Mockito.mockStatic(CryptoUtils.class)) {
+            mock.when(CryptoUtils::isFips140_3Enabled).thenReturn(true);
+            mock.when(CryptoUtils::isSemeruFips).thenReturn(true);
+            mock.when(CryptoUtils::isSemeruFips140_3Enabled).thenCallRealMethod();
+
+            CryptoUtils.semeruFips140_3Checked = false;
+            assertTrue("Expected Semeru FIPS 140-3 to be enabled, but was disabled.", CryptoUtils.isSemeruFips140_3Enabled());
+
+            mock.verify(CryptoUtils::isFips140_3Enabled, Mockito.times(1));
+            mock.verify(CryptoUtils::isSemeruFips, Mockito.times(1));
+            mock.verify(CryptoUtils::isSemeruFips140_3Enabled, Mockito.times(1));
+            mock.verifyNoMoreInteractions();
+        }
+    }
+
+    @Test
+    public void testSemeruFips140_3Enabled_isFips140_3Enabled_true_isSemeruFips_false() {
+        try (MockedStatic<CryptoUtils> mock = Mockito.mockStatic(CryptoUtils.class)) {
+            mock.when(CryptoUtils::isFips140_3Enabled).thenReturn(true);
+            mock.when(CryptoUtils::isSemeruFips).thenReturn(false);
+            mock.when(CryptoUtils::useEnhancedSecurityAlgorithms).thenReturn(false);
+            mock.when(CryptoUtils::isSemeruFips140_3Enabled).thenCallRealMethod();
+
+            CryptoUtils.semeruFips140_3Checked = false;
+            assertFalse("Expected Semeru FIPS 140-3 to be disabled, but was enabled.", CryptoUtils.isSemeruFips140_3Enabled());
+
+            mock.verify(CryptoUtils::isFips140_3Enabled, Mockito.times(1));
+            mock.verify(CryptoUtils::isSemeruFips, Mockito.times(1));
+            mock.verify(CryptoUtils::useEnhancedSecurityAlgorithms, Mockito.times(1));
+            mock.verify(CryptoUtils::isSemeruFips140_3Enabled, Mockito.times(1));
+            mock.verifyNoMoreInteractions();
+        }
+    }
+
+    @Test
+    public void testSemeruFips140_3Enabled_isFips140_3Enabled_false() {
+        try (MockedStatic<CryptoUtils> mock = Mockito.mockStatic(CryptoUtils.class)) {
+            mock.when(CryptoUtils::isFips140_3Enabled).thenReturn(false);
+            mock.when(CryptoUtils::useEnhancedSecurityAlgorithms).thenReturn(false);
+            mock.when(CryptoUtils::isSemeruFips140_3Enabled).thenCallRealMethod();
+
+            CryptoUtils.semeruFips140_3Checked = false;
+            assertFalse("Expected Semeru FIPS 140-3 to be disabled, but was enabled.", CryptoUtils.isSemeruFips140_3Enabled());
+
+            mock.verify(CryptoUtils::isFips140_3Enabled, Mockito.times(1));
+            mock.verify(CryptoUtils::useEnhancedSecurityAlgorithms, Mockito.times(1));
+            mock.verify(CryptoUtils::isSemeruFips140_3Enabled, Mockito.times(1));
+            mock.verifyNoMoreInteractions();
+        }
+    }
+
+    @Test
+    public void testSemeruFips140_3Enabled_useEnhancedSecurityAlgorithms_true() {
+        try (MockedStatic<CryptoUtils> mock = Mockito.mockStatic(CryptoUtils.class)) {
+            mock.when(CryptoUtils::isFips140_3Enabled).thenReturn(false);
+            mock.when(CryptoUtils::useEnhancedSecurityAlgorithms).thenReturn(true);
+            mock.when(CryptoUtils::isSemeruFips140_3Enabled).thenCallRealMethod();
+
+            CryptoUtils.semeruFips140_3Checked = false;
+            assertTrue("Expected Semeru FIPS 140-3 to be enabled, but was disabled.", CryptoUtils.isSemeruFips140_3Enabled());
+
+            mock.verify(CryptoUtils::isFips140_3Enabled, Mockito.times(1));
+            mock.verify(CryptoUtils::useEnhancedSecurityAlgorithms, Mockito.times(1));
+            mock.verify(CryptoUtils::isSemeruFips140_3Enabled, Mockito.times(1));
+            mock.verifyNoMoreInteractions();
+        }
+    }
+
 }
