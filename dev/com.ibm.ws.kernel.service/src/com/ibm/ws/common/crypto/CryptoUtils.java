@@ -449,9 +449,6 @@ public class CryptoUtils {
         else {
             fips140_3Enabled = false;
             boolean enabled = "140-3".equals(getFipsLevel());
-            if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
-                Tr.debug(tc, "isFips140_3Enabled: " + enabled);
-            }
 
             if (enabled) { // Check for FIPS 140-3 available
                 if (isIBMJCEPlusFIPSAvailable() || isOpenJCEPlusFIPSAvailable() || isIBMJCEPlusFIPSProviderAvailable() || isOpenJCEPlusFIPSProviderAvailable()) {
@@ -460,6 +457,10 @@ public class CryptoUtils {
                 } else {
                     Tr.error(tc, "FIPS_140_3ENABLED_ERROR");
                 }
+            }
+
+            if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
+                Tr.debug(tc, "isFips140_3Enabled: " + fips140_3Enabled);
             }
 
             if (!fips140_3Enabled) {
@@ -481,6 +482,9 @@ public class CryptoUtils {
             return semeruFips140_3Enabled;
         else {
             semeruFips140_3Enabled = isFips140_3Enabled() && isSemeruFips();
+            if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
+                Tr.debug(tc, "isSemeruFips140_3Enabled: " + semeruFips140_3Enabled);
+            }
 
             if (!semeruFips140_3Enabled) {
                 semeruFips140_3Enabled = useEnhancedSecurityAlgorithms();

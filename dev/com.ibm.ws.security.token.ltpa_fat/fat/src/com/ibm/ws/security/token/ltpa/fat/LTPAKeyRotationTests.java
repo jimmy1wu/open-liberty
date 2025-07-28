@@ -154,17 +154,22 @@ public class LTPAKeyRotationTests {
 
     // Define fipsEnabled
     private static final boolean fips140_3Enabled;
+    private static final boolean semeruFips140_3Enabled;
     private static final boolean fips140_2Enabled;
 
     static {
         boolean isFips140_3Enabled = false;
+        boolean isSemeruFips140_3Enabled = false;
         try {
             isFips140_3Enabled = server.isFIPS140_3EnabledAndSupported();
+            isSemeruFips140_3Enabled = server.isSemeruFIPS140_3EnabledAndSupported();
         } catch (Exception e) {
             e.printStackTrace();
         }
         fips140_3Enabled = isFips140_3Enabled;
         Log.info(thisClass, "static", "fips140_3Enabled: " + fips140_3Enabled);
+        semeruFips140_3Enabled = isSemeruFips140_3Enabled;
+        Log.info(thisClass, "static", "semeruFips140_3Enabled: " + semeruFips140_3Enabled);
 
         boolean isFips140_2Enabled = false;
         try {
@@ -251,6 +256,7 @@ public class LTPAKeyRotationTests {
         }
 
         assertNotNull("Expected \"isFips140_3Enabled: " + fips140_3Enabled + "\" trace was not found.", server.waitForStringInTrace("isFips140_3Enabled: " + fips140_3Enabled));
+        assertNotNull("Expected \"isSemeruFips140_3Enabled: " + semeruFips140_3Enabled + "\" trace was not found.", server.waitForStringInTrace("isSemeruFips140_3Enabled: " + semeruFips140_3Enabled));
         assertNotNull("Expected \"isFips140_2Enabled: " + fips140_2Enabled + "\" trace was not found.", server.waitForStringInTrace("isFips140_2Enabled: " + fips140_2Enabled));
     }
 
