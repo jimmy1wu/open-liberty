@@ -56,7 +56,7 @@ public class OAuth20DerbyClient01Hash extends OAuth20Client01Common {
     @AllowedFFDC({ "java.sql.SQLRecoverableException" })
     public void testOAuthDerbyCodeFlow() throws Exception {
         super.testOAuthDerbyCodeFlow();
-        boolean isFips = server.isFIPS140_3EnabledAndSupported();
+        boolean isFips = server.isSemeruFIPS140_3EnabledAndSupported();
         String iterations = isFips ? "210000" : "2048";
 
         String msg = checkDerbyEntry("http://" + server.getHostname() + ":" + server.getHttpDefaultPort(), server.getHttpDefaultPort(), "dclient01", "OAuthConfigDerby");

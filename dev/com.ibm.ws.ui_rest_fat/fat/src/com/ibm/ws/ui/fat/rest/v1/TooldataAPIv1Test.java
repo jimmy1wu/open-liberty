@@ -274,7 +274,7 @@ public class TooldataAPIv1Test extends CommonRESTTest implements APIConstants {
      */
     private boolean isFIPSEnabledOnServer() {
         try {
-            return FATSuite.server.isFIPS140_3EnabledAndSupported();
+            return FATSuite.server.isSemeruFIPS140_3EnabledAndSupported();
         } catch (IOException e) {
             e.printStackTrace();
             return false;

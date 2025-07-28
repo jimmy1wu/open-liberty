@@ -594,7 +594,7 @@ public class genericWebClientAuthCodeCommonTest extends CommonTest {
     @Test
     public void testAuthCodeBasicFlowHashSecret() throws Exception {
 
-        boolean isFips = testOPServer.getServer().isFIPS140_3EnabledAndSupported();
+        boolean isFips = testOPServer.getServer().isSemeruFIPS140_3EnabledAndSupported();
         String clientID = "hashClient";
         // if the hashtype, salt, iterations or key length change, this hash of password "hashSecret" needs to be updated.
         String hashSecret = isFips ? "{hash}ARAAAAAUUEJLREYyV2l0aEhtYWNTSEE1MTIgAAM0UDAAAAAsSFN0RkRsVENaNHJKUVRoYlNkZFpHNXEwT3ZmMm96RGxySnRUMUFZaVVoTT1AAAAAIKXbFUzZRRrAc1crX0XHX/jTvSvrRK3R3FyVKMcu5GKw" : "{hash}ARAAAAAUUEJLREYyV2l0aEhtYWNTSEE1MTIgAAAIAFAAAAAgMAAAACxIU3RGRGxUQ1o0ckpRVGhiU2RkWkc1cTBPdmYyb3pEbHJKdFQxQVlpVWhNPUAAAAAE/u6cVw==";

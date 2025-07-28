@@ -51,7 +51,7 @@ public class RestClientTckPackageTest {
     static {
         boolean isFipsEnabled = false;
         try {
-            isFipsEnabled = server.isFIPS140_3EnabledAndSupported();
+            isFipsEnabled = server.isSemeruFIPS140_3EnabledAndSupported();
         } catch (Exception e) {
             e.printStackTrace();
         }
