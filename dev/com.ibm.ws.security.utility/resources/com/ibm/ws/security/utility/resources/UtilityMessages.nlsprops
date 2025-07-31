@@ -1,5 +1,5 @@
 ###############################################################################
-# Copyright (c) 2010 IBM Corporation and others.
+# Copyright (c) 2010, 2025 IBM Corporation and others.
 # All rights reserved. This program and the accompanying materials
 # are made available under the terms of the Eclipse Public License 2.0
 # which accompanies this distribution, and is available at
@@ -107,3 +107,16 @@ createLTPAKeys.fileExists=The {0} file already exists.  Unable to create a LTPA 
 createLTPAKeys.createdFile=Created LTPA keys file: {0}\n\
 Include the following configuration to your server.xml\n\
 {1}\n
+
+#------------------------------\n at 72 chars -- leading tab-----------\n\#
+configureFIPS.abort=Aborting IBM Semeru FIPS 140-3 custom profile file creation:
+
+configureFIPS.fileExists=The {0} file already exists.\n\
+Unable to create an IBM Semeru FIPS 140-3 custom profile file in that location.
+
+configureFIPS.createdFile=Created IBM Semeru FIPS 140-3 custom profile file: {0}\n
+
+configureFIPS.includeJvmOptionsOrArgs=Include the following configuration to your jvm.options\n\
+{0}\n\n\
+Or include the following configuration to your java.env, default.env, or server.env\n\
+{1}

@@ -287,3 +287,47 @@ tlsProfiler.option-key.verbose=\
 \ \ \ \ --verbose
 tlsProfiler.option-desc.verbose=\
 \tInclude additional information about unsafe protocols.
+
+
+# -------- CONFIGURE FIPS OPTIONS --------------------------------------#
+# List of descriptive text for options. Use "\n\" for line continuations.
+# The code provides no whitespace: begin keys with "\ \ \ \ " for leading
+# whitespace, and begin descriptions with \t 
+#------------------------------\n at 72 chars -------------------------\n\#
+#------------------------------\n at 72 chars Leading "\ \ \ \ "-------\n\#
+#------------------------------\n at 72 chars Leading "\t"-------------\n\# 
+configureFIPS.desc=\
+\tConfigure FIPS 140-3 based on the Java runtime.
+
+configureFIPS.usage.options=\
+\t{0} configureFIPS [options]
+
+configureFIPS.option-key.runtime=\
+\ \ \ \ --runtime=[semeru|ibmjdk8]
+
+configureFIPS.option-desc.runtime=\
+\tSpecify the runtime being used to run FIPS 140-3.\n\
+\tSupported runtimes are semeru and ibmjdk8. The default runtime is semeru.\n\n\
+\tIf semeru is specified:\n\
+\tCreate the IBM Semeru FIPS 140-3 custom profile for use by the\n\
+\tserver. If no server or file is specified, a\n\
+\tsemeruFips140_3CustomProfile.properties file will be created in the\n\
+\tcurrent working directory. The system properties needed to enable FIPS 140-3\n\
+\ton IBM Semeru and use the custom profile will be printed.\n\n\
+\tIf ibmjdk8 is specified:\n\
+\tThe system properties needed to enable FIPS 140-3 on IBM JDK 8 will be printed.
+
+configureFIPS.option-key.server=\
+\ \ \ \ --server=name
+
+configureFIPS.option-desc.server=\
+\tServer for which to create the IBM Semeru FIPS 140-3 custom profile.\n\
+\tThis argument can not used if the --file argument is used.
+
+configureFIPS.option-key.file=\
+\ \ \ \ --file=name
+
+configureFIPS.option-desc.file=\
+\tThe file in which to write the IBM Semeru FIPS 140-3 custom profile.\n\
+\tThis argument can not be used if the --server argument is used.
+

@@ -20,7 +20,9 @@ import com.ibm.ws.crypto.certificateutil.DefaultSSLCertificateCreator;
 import com.ibm.ws.crypto.certificateutil.DefaultSSLCertificateFactory;
 import com.ibm.ws.crypto.ltpakeyutil.LTPAKeyFileUtility;
 import com.ibm.ws.crypto.ltpakeyutil.LTPAKeyFileUtilityImpl;
+import com.ibm.ws.kernel.productinfo.ProductInfo;
 import com.ibm.ws.kernel.service.util.UtilityTemplate;
+import com.ibm.ws.security.utility.tasks.ConfigureFIPSTask;
 import com.ibm.ws.security.utility.tasks.CreateLTPAKeysTask;
 import com.ibm.ws.security.utility.tasks.CreateSSLCertificateTask;
 import com.ibm.ws.security.utility.tasks.EncodeTask;
@@ -167,9 +169,13 @@ public class SecurityUtility extends UtilityTemplate {
         util.registerTask(new CreateSSLCertificateTask(certCreator, fileUtil, SCRIPT_NAME));
         util.registerTask(new CreateLTPAKeysTask(ltpaKeyFileCreator, fileUtil, SCRIPT_NAME));
         util.registerTask(new TLSProfilerTask(fileUtil, SCRIPT_NAME));
+        if (ProductInfo.getBetaEdition()) {
+            util.registerTask(new ConfigureFIPSTask(fileUtil, SCRIPT_NAME));
+        }
 
         // Kick everything off
         int rc = util.runProgram(args).getReturnCode();
         System.exit(rc);
     }
+
 }
