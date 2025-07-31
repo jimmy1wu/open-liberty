@@ -4,7 +4,7 @@
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-2.0/
- * 
+ *
  * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
@@ -29,8 +29,8 @@ public class CommandUtils {
     }
 
     /**
-     *  get the string from options resource bundle. if forceFormat is set to true or args has value, the code invokes
-     * MessageFormat.format method even args is not set. This is for processing double single quotes. 
+     * get the string from options resource bundle. if forceFormat is set to true or args has value, the code invokes
+     * MessageFormat.format method even args is not set. This is for processing double single quotes.
      * Since NLS_MESSAGEFORMAT_ALL is set for options resource bundle, every single quote ' character which needs to be
      * treated as a single quote, is escaped by another single quote. Otherwise, MessageFormat.format method will treat
      * a single quote as the beginning and ending of the quote. So all of the texts needs to be processed by MessageFormat
@@ -41,7 +41,7 @@ public class CommandUtils {
         if (forceFormat || args.length > 0) {
             return MessageFormat.format(option, args);
         } else {
-            return  option;
+            return option;
         }
     }
 

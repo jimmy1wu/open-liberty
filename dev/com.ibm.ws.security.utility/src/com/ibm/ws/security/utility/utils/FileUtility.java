@@ -28,6 +28,7 @@ public class FileUtility implements IFileUtility {
     static final String SLASH = String.valueOf(File.separatorChar);
     private final String WLP_USER_DIR;
     private final String WLP_OUTPUT_DIR;
+    private final String WLP_INSTALL_DIR;
 
     /**
      * Construct the FileUtility class based on the values for the various
@@ -38,9 +39,10 @@ public class FileUtility implements IFileUtility {
      * @param WLP_USER_DIR   The value of WLP_USER_DIR environment variable. {@code null} is supported.
      * @param WLP_OUTPUT_DIR The value of WLP_OUTPUT_DIR environment variable. {@code null} is supported.
      */
-    public FileUtility(String WLP_USER_DIR, String WLP_OUTPUT_DIR) {
+    public FileUtility(String WLP_USER_DIR, String WLP_OUTPUT_DIR, String WLP_INSTALL_DIR) {
         this.WLP_USER_DIR = WLP_USER_DIR;
         this.WLP_OUTPUT_DIR = WLP_OUTPUT_DIR;
+        this.WLP_INSTALL_DIR = WLP_INSTALL_DIR;
     }
 
     /** {@inheritDoc} */
@@ -62,6 +64,16 @@ public class FileUtility implements IFileUtility {
             return WLP_USER_DIR + SLASH + "clients" + SLASH;
         } else {
             return System.getProperty("user.dir") + SLASH + "usr" + SLASH + "clients" + SLASH;
+        }
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public String getInstallDirectory() {
+        if (WLP_INSTALL_DIR != null) {
+            return WLP_INSTALL_DIR + SLASH;
+        } else {
+            return System.getProperty("user.dir") + SLASH;
         }
     }
 
@@ -126,9 +138,19 @@ public class FileUtility implements IFileUtility {
     /** {@inheritDoc} */
     @Override
     public boolean writeToFile(PrintStream stderr, String toWrite, File outFile) {
+        return writeToFile(stderr, toWrite, outFile, false);
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public boolean appendToFile(PrintStream stderr, String toWrite, File outFile) {
+        return writeToFile(stderr, toWrite, outFile, true);
+    }
+
+    private boolean writeToFile(PrintStream stderr, String toWrite, File outFile, boolean append) {
         FileOutputStream fos = null;
         try {
-            fos = new FileOutputStream(outFile);
+            fos = new FileOutputStream(outFile, append);
             fos.write(toWrite.getBytes(StandardCharsets.UTF_8));
             fos.flush();
             return true;

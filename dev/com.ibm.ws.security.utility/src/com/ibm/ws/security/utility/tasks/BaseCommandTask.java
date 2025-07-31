@@ -4,7 +4,7 @@
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-2.0/
- * 
+ *
  * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
@@ -53,12 +53,14 @@ public abstract class BaseCommandTask implements SecurityUtilityTask {
         StringBuilder scriptOptions = new StringBuilder();
         if (optionKeyPrefix != null && !optionKeyPrefix.isEmpty() && optionDescPrefix != null && !optionDescPrefix.isEmpty()) {
             Enumeration<String> keys = CommandUtils.getOptions().getKeys();
+
             Set<String> optionKeys = new TreeSet<String>();
 
             while (keys.hasMoreElements()) {
                 String key = keys.nextElement();
                 if (key.startsWith(optionKeyPrefix)) {
                     optionKeys.add(key);
+
                 }
             }
 
@@ -81,13 +83,13 @@ public abstract class BaseCommandTask implements SecurityUtilityTask {
     /**
      * Generate the formatted task help.
      *
-     * @param desc the description NLS key
-     * @param usage the usage NLS key
-     * @param optionKeyPrefix the option name NLS key prefix
+     * @param desc             the description NLS key
+     * @param usage            the usage NLS key
+     * @param optionKeyPrefix  the option name NLS key prefix
      * @param optionDescPrefix the option description NLS key prefix
-     * @param addonKey an addon NLS key prefix
-     * @param footer a raw (already translated) String to append to the output
-     * @param args any arguments to pass to the formating keys (order matters)
+     * @param addonKey         an addon NLS key prefix
+     * @param footer           a raw (already translated) String to append to the output
+     * @param args             any arguments to pass to the formating keys (order matters)
      * @return
      */
     protected String getTaskHelp(String desc, String usage,
@@ -227,12 +229,12 @@ public abstract class BaseCommandTask implements SecurityUtilityTask {
      * No validation is done in the format of args as it is assumed to
      * have been done previously.
      *
-     * @param arg Argument name to resolve a value for
-     * @param args List of arguments. Assumes the script name is included and therefore minimum length is 2.
-     * @param defalt Default value if the argument is not specified
+     * @param arg            Argument name to resolve a value for
+     * @param args           List of arguments. Assumes the script name is included and therefore minimum length is 2.
+     * @param defalt         Default value if the argument is not specified
      * @param passwordArgKey The password argument key (required to know when to prompt for password)
-     * @param stdin Standard in interface
-     * @param stdout Standard out interface
+     * @param stdin          Standard in interface
+     * @param stdout         Standard out interface
      * @return Value of the argument
      * @throws IllegalArgumentException if the argument is defined but no value is given.
      */
