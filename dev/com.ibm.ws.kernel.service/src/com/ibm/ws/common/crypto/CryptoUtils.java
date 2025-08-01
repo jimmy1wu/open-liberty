@@ -11,6 +11,7 @@ package com.ibm.ws.common.crypto;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.lang.management.ManagementFactory;
 import java.security.AccessController;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -420,6 +421,10 @@ public class CryptoUtils {
         return result;
     }
 
+    public static boolean isIbmJava8Fips140_3() {
+        return ManagementFactory.getRuntimeMXBean().getInputArguments().contains("-Xenablefips140-3");
+    }
+
     public static boolean isSemeruFips() {
         return "true".equals(getPropertyLowerCase("semeru.fips", "false"));
     }
@@ -468,6 +473,14 @@ public class CryptoUtils {
         }
     }
 
+    public static boolean isIbmJava8Fips140_3SetAndFipsProviderAvailable() {
+        return isIbmJava8Fips140_3() && (isIBMJCEPlusFIPSAvailable() || isIBMJCEPlusFIPSProviderAvailable());
+    }
+
+    public static boolean isSemeruFipsTrueAndFips140_3ProviderAvailable() {
+        return isSemeruFips() && (isOpenJCEPlusFIPSAvailable() || isOpenJCEPlusFIPSProviderAvailable());
+    }
+
     /**
      * Checks if FIPS 140-3 is enabled for either Semeru or IBM JDK.
      *
@@ -481,9 +494,12 @@ public class CryptoUtils {
             boolean enabled = "140-3".equals(getFipsLevel());
 
             if (enabled) { // Check for FIPS 140-3 available
-                if (isIBMJCEPlusFIPSAvailable() || isOpenJCEPlusFIPSAvailable() || isIBMJCEPlusFIPSProviderAvailable() || isOpenJCEPlusFIPSProviderAvailable()) {
+                if (isIbmJava8Fips140_3SetAndFipsProviderAvailable()) {
                     fips140_3Enabled = true;
-                    Tr.info(tc, "FIPS_140_3ENABLED", (ibmJCEPlusFIPSAvailable ? IBMJCE_PLUS_FIPS_NAME : OPENJCE_PLUS_FIPS_NAME));
+                    Tr.info(tc, "FIPS_140_3ENABLED", IBMJCE_PLUS_FIPS_NAME);
+                } else if (isSemeruFipsTrueAndFips140_3ProviderAvailable()) {
+                    fips140_3Enabled = true;
+                    Tr.info(tc, "FIPS_140_3ENABLED", OPENJCE_PLUS_FIPS_NAME);
                 } else {
                     Tr.error(tc, "FIPS_140_3ENABLED_ERROR");
                 }
@@ -516,7 +532,7 @@ public class CryptoUtils {
         if (semeruFips140_3Checked)
             return semeruFips140_3Enabled;
         else {
-            semeruFips140_3Enabled = isFips140_3Enabled() && isSemeruFips();
+            semeruFips140_3Enabled = isFips140_3Enabled() && isSemeruFipsTrueAndFips140_3ProviderAvailable();
             if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
                 Tr.debug(tc, "isSemeruFips140_3Enabled: " + semeruFips140_3Enabled);
             }
