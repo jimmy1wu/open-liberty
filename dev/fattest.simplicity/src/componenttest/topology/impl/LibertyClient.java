@@ -3995,7 +3995,7 @@ public class LibertyClient {
         }
 
         boolean isIBMJVM8 = (javaInfo.majorVersion() == 8) && (javaInfo.VENDOR == Vendor.IBM);
-        boolean isIBMJVMGreaterOrEqualTo11 = (javaInfo.majorVersion() >= 11) && (javaInfo.VENDOR == Vendor.IBM);
+        boolean isIBMJVMGreaterOrEqualTo11 = (javaInfo.majorVersion() >= 11) && ((javaInfo.VENDOR == Vendor.IBM) || (javaInfo.VENDOR == Vendor.OPENJ9));
         if (GLOBAL_CLIENT_FIPS_140_3) {
             Log.info(c, methodName, "Liberty client is running JDK version: " + javaInfo.majorVersion() + " and vendor: " + javaInfo.VENDOR);
             if (isIBMJVM8) {
