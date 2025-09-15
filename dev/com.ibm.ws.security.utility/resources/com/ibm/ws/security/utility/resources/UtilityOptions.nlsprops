@@ -322,17 +322,17 @@ configureFIPS.option-key.1.server=\
 \ \ \ \ --server=name
 
 configureFIPS.option-desc.1.server=\
-\tServer for which to enable FIPS 140-3. If this value is not provided\n\
-\tand no client is specified, then FIPS 140-3 will be enabled for all\n\
-\tclients, servers, and commands.
+\tServer for which to configure FIPS 140-3. If this value is not\n\
+\tprovided and no client is specified, then FIPS 140-3 will be\n\
+\tconfigured for all clients, servers, and commands.
 
 configureFIPS.option-key.2.client=\
 \ \ \ \ --client=name
 
 configureFIPS.option-desc.2.client=\
-\tClient for which to enable FIPS 140-3. If this value is not provided\n\
-\tand no server is specified, then FIPS 140-3 will be enabled for all\n\
-\tclients, servers, and commands.
+\tClient for which to configure FIPS 140-3. If this value is not\n\
+\tprovided and no server is specified, then FIPS 140-3 will be\n\
+\tconfigured for all clients, servers, and commands.
 
 configureFIPS.option-key.3.customProfileFile=\
 \ \ \ \ --customProfileFile=name
@@ -361,5 +361,5 @@ configureFIPS.option-desc.4.disable=\
 \tDisable FIPS 140-3. This option can be used with the client and\n\
 \tserver options to specify the client or server to disable FIPS 140-3.\n\
 \tOtherwise, it will disable FIPS 140-3 for all clients, servers, and\n\
-\tcommands.
-
+\tcommands except those clients and servers which have been\n\
+\tindividually enabled.

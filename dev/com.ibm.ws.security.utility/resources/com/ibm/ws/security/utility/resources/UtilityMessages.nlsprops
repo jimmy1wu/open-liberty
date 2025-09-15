@@ -119,16 +119,17 @@ configureFIPS.abortSemeruFile=Aborting IBM Semeru FIPS 140-3 custom profile file
 
 configureFIPS.abortEnvFile=Aborting configuration file modification:
 
-configureFIPS.fileExists=The {0} file already exists.\n\
-Unable to create an IBM Semeru Runtimes FIPS 140-3 custom profile file in that location.
+configureFIPS.fileExists=Using the existing {0} file.
 
 configureFIPS.createdSemeruFile=Created IBM Semeru Runtimes FIPS 140-3 custom profile file: {0}
 
 configureFIPS.fileDoesNotExist=The {0} file does not exist.
 
-configureFIPS.createdEnvFileToEnableFips=Created configuration file to enable FIPS 140-3: {0} 
-configureFIPS.appendedEnvFileToEnableFips=Updated configuration file to enable FIPS 140-3: {0}
+configureFIPS.createdEnvFileToEnableFips=Created the {0} file to enable FIPS 140-3.
+configureFIPS.updatedEnvFileToEnableFips=Updated the {0} file to enable FIPS 140-3.
 configureFIPS.fipsAlreadyEnabled=FIPS 140-3 has already been enabled in the {0} file.
 
-configureFIPS.updatedEnvFileToDisableFips=Updated configuration file to disable FIPS 140-3: {0}
+configureFIPS.updatedEnvFileToDisableFips=Updated the {0} file to disable FIPS 140-3.
 configureFIPS.fipsNotEnabled=FIPS 140-3 is already not enabled in the {0} file.
+
+configureFIPS.restartServer=Please restart your server(s) and/or client(s) to apply the change.

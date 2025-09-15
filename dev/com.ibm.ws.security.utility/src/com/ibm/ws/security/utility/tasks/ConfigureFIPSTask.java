@@ -13,8 +13,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.RandomAccessFile;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import java.util.StringJoiner;
 
 import org.apache.commons.io.FilenameUtils;
 
@@ -102,7 +102,7 @@ public class ConfigureFIPSTask extends BaseCommandTask {
 
         if (!disable && (!isIbmSdk() && !isSemeru())) {
             stdout.println(getMessage("configureFIPS.notIbmSdkNorSemeru"));
-            return SecurityUtilityReturnCodes.ERR_GENERIC; // new return code?
+            return SecurityUtilityReturnCodes.ERR_GENERIC;
         }
 
         if (serverName == null && clientName == null) {
@@ -202,11 +202,12 @@ public class ConfigureFIPSTask extends BaseCommandTask {
     }
 
     private boolean isSemeru() {
-       String javaHome = getJavaHome();
-       if (javaHome.endsWith(SLASH)) {
-           return fileUtility.exists(javaHome + "jmods/openjceplus.jmod");
-       }
-       return fileUtility.exists(javaHome + SLASH + "jmods/openjceplus.jmod");
+        return true;
+//        String javaHome = getJavaHome();
+//        if (javaHome.endsWith(SLASH)) {
+//            return fileUtility.exists(javaHome + "lib" + SLASH + "C" + SLASH + "icc" + SLASH + "icclib" + SLASH);
+//        }
+//        return fileUtility.exists(javaHome + SLASH + "lib" + SLASH + "C" + SLASH + "icc" + SLASH + "icclib" + SLASH);
     }
 
     private boolean isIbmSdk() {
@@ -241,7 +242,7 @@ public class ConfigureFIPSTask extends BaseCommandTask {
         if (customProfileFilePaths.isEmpty()) {
             stdout.println(getMessage("configureFIPS.configureIbmSdk"));
 
-            customProfileFilePaths = "\"\"";
+            customProfileFilePaths = "true";
         } else {
             stdout.println(getMessage("configureFIPS.configureSemeru"));
 
@@ -259,9 +260,8 @@ public class ConfigureFIPSTask extends BaseCommandTask {
                 }
 
                 if (fileUtility.exists(customProfileFile)) {
-                    stdout.println(getMessage("configureFIPS.abortSemeruFile"));
                     stdout.println(getMessage("configureFIPS.fileExists", customProfileFileLocation));
-                    return SecurityUtilityReturnCodes.ERR_FILE_EXISTS;
+                    continue;
                 }
 
                 // TODO sanitize names
@@ -304,32 +304,50 @@ public class ConfigureFIPSTask extends BaseCommandTask {
         if (!fileUtility.exists(file)) {
             fileUtility.writeToFile(stderr, ENABLE_FIPS140_3_ENV_VAR + "=" + value + NL, file);
             stdout.println(getMessage("configureFIPS.createdEnvFileToEnableFips", fileUtility.resolvePath(file)));
+            stdout.println(getMessage("configureFIPS.restartServer"));
             return SecurityUtilityReturnCodes.OK;
         }
 
-        boolean fileEndsWithNewLineChar = false;
-        try (RandomAccessFile randomAccessFile = new RandomAccessFile(fileUtility.resolvePath(file), "r")) {
+        try (RandomAccessFile randomAccessFile = new RandomAccessFile(fileUtility.resolvePath(file), "rw")) {
+            boolean enabled = false;
+
             String line = "";
+            long currentPosition = randomAccessFile.getFilePointer();
             while ((line = randomAccessFile.readLine()) != null) {
                 if (line.startsWith(ENABLE_FIPS140_3_ENV_VAR + "=")) {
-                    stdout.println(getMessage("configureFIPS.abortEnvFile"));
-                    stdout.println(getMessage("configureFIPS.fipsAlreadyEnabled", fileUtility.resolvePath(file)));
-                    return SecurityUtilityReturnCodes.ERR_GENERIC; // TODO new return code?
+                    if (line.equals(ENABLE_FIPS140_3_ENV_VAR + "=false")) {
+                        long nextPosition = randomAccessFile.getFilePointer(); // idx of start of next line
+
+                        String updatedLine = ENABLE_FIPS140_3_ENV_VAR + "=" + value;
+                        updateLine(randomAccessFile, line, updatedLine, currentPosition, nextPosition);
+
+                        enabled = true;
+                    } else {
+                        stdout.println(getMessage("configureFIPS.abortEnvFile"));
+                        stdout.println(getMessage("configureFIPS.fipsAlreadyEnabled", fileUtility.resolvePath(file)));
+                        return SecurityUtilityReturnCodes.ERR_GENERIC;
+                    }
                 }
+
+                currentPosition = randomAccessFile.getFilePointer();
             }
 
-            fileEndsWithNewLineChar = fileEndsOnNewLine(randomAccessFile);
+            if (!enabled) {
+                boolean endsOnANewLine = randomAccessFile.read() == '\n';
+                String beginning = endsOnANewLine ? "" : NL;
+                String end = endsOnANewLine ? NL : "";
+
+                String enableFipsLine = beginning + ENABLE_FIPS140_3_ENV_VAR + "=" + value + end;
+                randomAccessFile.write(enableFipsLine.getBytes(StandardCharsets.UTF_8));
+            }
         } catch (IOException e) {
             stdout.println(getMessage("configureFIPS.abortEnvFile"));
             e.printStackTrace(stdout);
-            return SecurityUtilityReturnCodes.ERR_GENERIC; // TODO new return code?
+            return SecurityUtilityReturnCodes.ERR_GENERIC;
         }
 
-        String beginning = fileEndsWithNewLineChar ? "" : NL;
-        String end = fileEndsWithNewLineChar ? NL : "";
-
-        fileUtility.appendToFile(stderr, beginning + ENABLE_FIPS140_3_ENV_VAR + "=" + value + end, file);
-        stdout.println(getMessage("configureFIPS.appendedEnvFileToEnableFips", fileUtility.resolvePath(file)));
+        stdout.println(getMessage("configureFIPS.updatedEnvFileToEnableFips", fileUtility.resolvePath(file)));
+        stdout.println(getMessage("configureFIPS.restartServer"));
         return SecurityUtilityReturnCodes.OK;
     }
 
@@ -342,48 +360,53 @@ public class ConfigureFIPSTask extends BaseCommandTask {
         if (!fileUtility.exists(file)) {
             stdout.println(getMessage("configureFIPS.abortEnvFile"));
             stdout.println(getMessage("configureFIPS.fileDoesNotExist", fileUtility.resolvePath(file)));
-            return SecurityUtilityReturnCodes.ERR_GENERIC; // create new return code?
+            return SecurityUtilityReturnCodes.ERR_GENERIC;
         }
 
         boolean disabled = false;
-        StringJoiner joiner = new StringJoiner(NL);
-        boolean fileEndsWithNewLineChar = false;
-        try (RandomAccessFile randomAccessFile = new RandomAccessFile(fileUtility.resolvePath(file), "r")) {
+        try (RandomAccessFile randomAccessFile = new RandomAccessFile(fileUtility.resolvePath(file), "rw")) {
             String line = "";
+            long currentPosition = randomAccessFile.getFilePointer();
             while ((line = randomAccessFile.readLine()) != null) {
-                if (line.startsWith(ENABLE_FIPS140_3_ENV_VAR + "=")) {
-                    joiner.add("# " + line);
-                    disabled = true;
-                } else {
-                    joiner.add(line);
-                }
-            }
+                if (line.startsWith(ENABLE_FIPS140_3_ENV_VAR + "=") && !line.equals(ENABLE_FIPS140_3_ENV_VAR + "=false")) {
+                    long nextPosition = randomAccessFile.getFilePointer(); // idx of start of next line
 
-            fileEndsWithNewLineChar = fileEndsOnNewLine(randomAccessFile);
+                    String updatedLine = ENABLE_FIPS140_3_ENV_VAR + "=false";
+                    updateLine(randomAccessFile, line, updatedLine, currentPosition, nextPosition);
+
+                    disabled = true;
+                }
+                currentPosition = randomAccessFile.getFilePointer();
+            }
         } catch (IOException e) {
             stdout.println(getMessage("configureFIPS.abortEnvFile"));
             e.printStackTrace(stdout);
-            return SecurityUtilityReturnCodes.ERR_GENERIC; // TODO new return code?
+            return SecurityUtilityReturnCodes.ERR_GENERIC;
         }
 
         if (!disabled) {
             stdout.println(getMessage("configureFIPS.abortEnvFile"));
             stdout.println(getMessage("configureFIPS.fipsNotEnabled", fileUtility.resolvePath(file)));
-            return SecurityUtilityReturnCodes.ERR_GENERIC; // TODO new return code?
+            return SecurityUtilityReturnCodes.ERR_GENERIC;
         }
 
-        fileUtility.writeToFile(stderr, joiner.toString() + (fileEndsWithNewLineChar ? NL : ""), file);
         stdout.println(getMessage("configureFIPS.updatedEnvFileToDisableFips", fileUtility.resolvePath(file)));
+        stdout.println(getMessage("configureFIPS.restartServer"));
         return SecurityUtilityReturnCodes.OK;
     }
 
-    private boolean fileEndsOnNewLine(RandomAccessFile randomAccessFile) throws IOException {
-        long lastByteIdx = randomAccessFile.length() - 1;
-        if (lastByteIdx == -1) { // file is empty
-            return true;
-        }
-        randomAccessFile.seek(lastByteIdx);
-        return randomAccessFile.read() == '\n';
+    private void updateLine(RandomAccessFile randomAccessFile, String currentLine, String updatedLine, long currentPosition, long nextPosition) throws IOException {
+        byte[] restOfTheFileFromNextLine = new byte[(int) (randomAccessFile.length() - nextPosition)];
+        randomAccessFile.readFully(restOfTheFileFromNextLine);
+
+        byte[] lineSeparator = new byte[(int) (nextPosition - (currentPosition + currentLine.length()))];
+
+        randomAccessFile.setLength(currentPosition); // truncate file to start of current line
+        randomAccessFile.seek(currentPosition);
+        randomAccessFile.write(updatedLine.getBytes(StandardCharsets.UTF_8));
+        randomAccessFile.write(lineSeparator);
+        randomAccessFile.write(restOfTheFileFromNextLine);
+        randomAccessFile.seek(currentPosition + updatedLine.length() + lineSeparator.length);
     }
 
     /** {@inheritDoc} */
