@@ -78,8 +78,10 @@ public class JwtUtils {
     public static final String CFG_KEY_TRUSTSTORE_REF = "trustStoreRef";
     public static final String CFG_KEY_TRUSTED_ALIAS = "trustedAlias";
     public static final String CFG_KEY_SHARED_KEY = "sharedKey";
+    public static final String CFG_KEY_WORKLOAD_IDENTITY_CLAIM = "workloadIdentityClaim";
     public static final String CFG_KEY_JWK_ROTATION_TIME = "jwkRotationTime";
     public static final String CFG_KEY_JWK_SIGNING_KEY_SIZE = "jwkSigningKeySize";
+    public static final String CFG_KEY_JWK_MAX_KEYS = "jwkMaxKeys";
     public static final String CFG_KEY_JWK_ENDPOINT_URL = "jwkEndpointUrl";
     public static final String CFG_KEY_CLOCK_SKEW = "clockSkew";
     public static final String CFG_KEY_VALIDATION_REQUIRED = "validationRequired";

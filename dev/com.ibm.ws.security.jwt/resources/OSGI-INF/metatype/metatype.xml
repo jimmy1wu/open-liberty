@@ -59,6 +59,8 @@
          <AD id="contentEncryptionAlgorithm" name="%contentEncryptionAlgorithm" description="%contentEncryptionAlgorithm.desc" required="false" type="String" >
              <Option label="%contentEncryptionAlgorithm.A256GCM" value="A256GCM" />
          </AD>
+         <AD id="jwkMaxKeys" name="%jwkMaxKeys" description="%jwkMaxKeys.desc" required="false" type="Integer" default="2" min="1" max="10" />
+         <AD id="workloadIdentityClaim" name="%workloadIdentityClaim" description="%workloadIdentityClaim.desc" required="false" type="String" />
     </OCD>
 
     <Designate factoryPid="com.ibm.ws.security.jwt.builder">

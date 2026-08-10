@@ -4,7 +4,7 @@
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-2.0/
- * 
+ *
  * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
@@ -70,10 +70,13 @@ public class JwtComponent implements JwtConfig {
     private String trustedAlias;
     private long jwkRotationTime;
     private int jwkSigningKeySize;
+    private int jwkMaxKeys;
     private String keyManagementKeyAlgorithm;
     private String keyManagementKeyAlias;
     private String contentEncryptionAlgorithm;
     private long nbfOffsetTime;
+    private String workloadIdentityClaim;
+    private String serverIdentity;
 
     private PublicKey publicKey = null;
     private PrivateKey privateKey = null;
@@ -145,9 +148,14 @@ public class JwtComponent implements JwtConfig {
         if (props == null || props.isEmpty()) {
             return;
         }
+        workloadIdentityClaim = JwtUtils.trimIt((String) props.get(JwtUtils.CFG_KEY_WORKLOAD_IDENTITY_CLAIM));
+        System.out.println("$JIMMY workloadIdentityClaim: " + workloadIdentityClaim);
+        serverIdentity = serverInfoMBean.getDefaultHostname() + "," + serverInfoMBean.getUserDirectory() + "," + serverInfoMBean.getName();
+        System.out.println("$JIMMY serverIdentity: " + serverIdentity);
         issuer = JwtUtils.trimIt((String) props.get(JwtUtils.CFG_KEY_ID));
         issuerUrl = JwtUtils.trimIt((String) props.get(JwtUtils.CFG_KEY_ISSUER));
         isJwkEnabled = (Boolean) props.get(JwtUtils.CFG_KEY_JWK_ENABLED);
+        System.out.println("$JIMMY isJwkEnabled: " + isJwkEnabled);
         jti = (Boolean) props.get(JwtUtils.CFG_KEY_JTI);
         valid = ((Long) props.get(JwtUtils.CFG_KEY_VALID)).longValue();
         expiresInSeconds = ((Long) props.get(JwtUtils.CFG_KEY_EXPIRES_IN_SECONDS)).longValue();
@@ -171,6 +179,7 @@ public class JwtComponent implements JwtConfig {
         // Rotation time is in minutes, so convert value to milliseconds
         jwkRotationTime = jwkRotationTime * 60 * 1000;
         jwkSigningKeySize = ((Long) props.get(JwtUtils.CFG_KEY_JWK_SIGNING_KEY_SIZE)).intValue();
+        jwkMaxKeys = (Integer) props.get(JwtUtils.CFG_KEY_JWK_MAX_KEYS);
         nbfOffsetTime = ((Long) props.get(JwtUtils.CFG_KEY_NBF_OFFSET)).longValue();
         amrAttributes = JwtUtils.trimIt((String[]) props.get(JwtUtils.CFG_AMR_ATTR));
         loadJweConfigOptions(props);
@@ -301,6 +310,16 @@ public class JwtComponent implements JwtConfig {
     }
 
     @Override
+    public String getWorkloadIdentityClaim() {
+        return workloadIdentityClaim;
+    }
+
+    @Override
+    public String getServerIdentity() {
+        return serverIdentity;
+    }
+
+    @Override
     public String getJwkJsonString() {
         if (!isJwkEnabled() && jwkProvider == null) {
             // create jwk from x509 certificate.
@@ -335,6 +354,11 @@ public class JwtComponent implements JwtConfig {
     @Override
     public int getJwkSigningKeySize() {
         return jwkSigningKeySize;
+    }
+
+    @Override
+    public int getJwkMaxKeys() {
+        return jwkMaxKeys;
     }
 
     @Override

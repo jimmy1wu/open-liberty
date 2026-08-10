@@ -4,7 +4,7 @@
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-2.0/
- * 
+ *
  * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
@@ -190,6 +190,11 @@ public class BuilderImpl implements Builder {
             } catch (Exception e) {
                 // TODO Auto-generated catch block
             }
+        }
+
+        if (jwtConfig.getWorkloadIdentityClaim() != null) {
+            String workloadIdentity = jwtConfig.getServerIdentity() + "," + "myAppName";
+            claims.put(jwtConfig.getWorkloadIdentityClaim(), workloadIdentity);
         }
     }
 
@@ -852,8 +857,19 @@ public class BuilderImpl implements Builder {
     @Override
     public JwtToken buildJwt() throws JwtException, InvalidBuilderException {
         // Create JWT here
-        // TODO check for default claims?
+        // TODO check for default claims?)
         JwtConfig config = getConfig(configId);
+
+        if (config.getWorkloadIdentityClaim() != null) {
+            String workloadIdentity = (String) claims.get(config.getWorkloadIdentityClaim());
+            if (workloadIdentity == null) {
+                throw new JwtException("$JIMMY you removed the claim...");
+            }
+            if (!workloadIdentity.equals(config.getServerIdentity() + "," + "myAppName")) {
+                throw new JwtException("$JIMMY you modified the claim...");
+            }
+        }
+
         JwtToken jwt = new TokenImpl(this, config);
 
         return jwt;
