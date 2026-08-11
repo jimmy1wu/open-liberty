@@ -193,13 +193,21 @@ public class BuilderImpl implements Builder {
         }
 
         if (jwtConfig.getWorkloadIdentityClaim() != null) {
-            String workloadIdentity = jwtConfig.getServerIdentity() + "," + "myAppName";
+            String workloadIdentity = jwtConfig.getApplicationIdentity(getCallingAppName());
             claims.put(jwtConfig.getWorkloadIdentityClaim(), workloadIdentity);
         }
     }
 
     private JwtConfig getTheServiceConfig(String builderConfigId) {
         return jwtServiceMapRef.getService(builderConfigId);
+    }
+
+    private String getCallingAppName() {
+        com.ibm.ws.runtime.metadata.ComponentMetaData cmd = com.ibm.ws.threadContext.ComponentMetaDataAccessorImpl.getComponentMetaDataAccessor().getComponentMetaData();
+        if (cmd != null) {
+            return cmd.getJ2EEName().getApplication();
+        }
+        return null;
     }
 
     @Reference(service = JwtConfig.class, name = KEY_JWT_SERVICE, policy = ReferencePolicy.DYNAMIC, cardinality = ReferenceCardinality.MULTIPLE, policyOption = ReferencePolicyOption.RELUCTANT)
@@ -865,7 +873,7 @@ public class BuilderImpl implements Builder {
             if (workloadIdentity == null) {
                 throw new JwtException("$JIMMY you removed the claim...");
             }
-            if (!workloadIdentity.equals(config.getServerIdentity() + "," + "myAppName")) {
+            if (!workloadIdentity.equals(config.getApplicationIdentity(getCallingAppName()))) {
                 throw new JwtException("$JIMMY you modified the claim...");
             }
         }

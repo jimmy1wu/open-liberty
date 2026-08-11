@@ -52,6 +52,8 @@ public interface JwtConfig {
 
     String getServerIdentity();
 
+    String getApplicationIdentity(String appName);
+
     String getJwkJsonString();
 
     JSONWebKey getJSONWebKey();

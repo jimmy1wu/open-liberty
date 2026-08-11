@@ -320,6 +320,14 @@ public class JwtComponent implements JwtConfig {
     }
 
     @Override
+    public String getApplicationIdentity(String appName) {
+        if (serverIdentity == null || appName == null) {
+            return null;
+        }
+        return serverIdentity + "," + appName;
+    }
+
+    @Override
     public String getJwkJsonString() {
         if (!isJwkEnabled() && jwkProvider == null) {
             // create jwk from x509 certificate.
