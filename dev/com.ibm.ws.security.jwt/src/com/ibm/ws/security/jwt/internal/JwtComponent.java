@@ -76,7 +76,6 @@ public class JwtComponent implements JwtConfig {
     private String contentEncryptionAlgorithm;
     private long nbfOffsetTime;
     private String workloadIdentityClaim;
-    private String serverIdentity;
 
     private PublicKey publicKey = null;
     private PrivateKey privateKey = null;
@@ -149,13 +148,9 @@ public class JwtComponent implements JwtConfig {
             return;
         }
         workloadIdentityClaim = JwtUtils.trimIt((String) props.get(JwtUtils.CFG_KEY_WORKLOAD_IDENTITY_CLAIM));
-        System.out.println("$JIMMY workloadIdentityClaim: " + workloadIdentityClaim);
-        serverIdentity = serverInfoMBean.getDefaultHostname() + "," + serverInfoMBean.getUserDirectory() + "," + serverInfoMBean.getName();
-        System.out.println("$JIMMY serverIdentity: " + serverIdentity);
         issuer = JwtUtils.trimIt((String) props.get(JwtUtils.CFG_KEY_ID));
         issuerUrl = JwtUtils.trimIt((String) props.get(JwtUtils.CFG_KEY_ISSUER));
         isJwkEnabled = (Boolean) props.get(JwtUtils.CFG_KEY_JWK_ENABLED);
-        System.out.println("$JIMMY isJwkEnabled: " + isJwkEnabled);
         jti = (Boolean) props.get(JwtUtils.CFG_KEY_JTI);
         valid = ((Long) props.get(JwtUtils.CFG_KEY_VALID)).longValue();
         expiresInSeconds = ((Long) props.get(JwtUtils.CFG_KEY_EXPIRES_IN_SECONDS)).longValue();
@@ -316,11 +311,15 @@ public class JwtComponent implements JwtConfig {
 
     @Override
     public String getServerIdentity() {
-        return serverIdentity;
+        if (workloadIdentityClaim == null || workloadIdentityClaim.isEmpty()) {
+            return null;
+        }
+        return serverInfoMBean.getDefaultHostname() + "," + serverInfoMBean.getUserDirectory() + "," + serverInfoMBean.getName();
     }
 
     @Override
     public String getApplicationIdentity(String appName) {
+        String serverIdentity = getServerIdentity();
         if (serverIdentity == null || appName == null) {
             return null;
         }
