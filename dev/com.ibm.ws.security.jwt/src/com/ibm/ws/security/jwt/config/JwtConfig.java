@@ -50,9 +50,7 @@ public interface JwtConfig {
 
     String getWorkloadIdentityClaim();
 
-    String getServerIdentity();
-
-    String getApplicationIdentity(String appName);
+    String getWorkloadIdentity();
 
     String getJwkJsonString();
 

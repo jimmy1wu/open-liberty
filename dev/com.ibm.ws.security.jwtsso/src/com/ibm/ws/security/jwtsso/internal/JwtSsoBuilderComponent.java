@@ -445,12 +445,7 @@ public class JwtSsoBuilderComponent implements JwtSsoBuilderConfig {
 	}
 
 	@Override
-	public String getServerIdentity() {
-		return null;
-	}
-
-	@Override
-	public String getApplicationIdentity(String appName) {
+	public String getWorkloadIdentity() {
 		return null;
 	}
 

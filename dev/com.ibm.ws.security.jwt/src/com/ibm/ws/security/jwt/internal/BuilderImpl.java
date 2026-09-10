@@ -83,6 +83,7 @@ public class BuilderImpl implements Builder {
     private String sharedKey;
     private Key privateKey;
     private String configId;
+    private String workloadIdentityClaim;
 
     // JWE fields
     private String keyManagementAlg;
@@ -192,22 +193,25 @@ public class BuilderImpl implements Builder {
             }
         }
 
-        if (jwtConfig.getWorkloadIdentityClaim() != null) {
-            String workloadIdentity = jwtConfig.getApplicationIdentity(getCallingAppName());
-            claims.put(jwtConfig.getWorkloadIdentityClaim(), workloadIdentity);
+        workloadIdentityClaim = jwtConfig.getWorkloadIdentityClaim();
+        if (workloadIdentityClaim != null) {
+            String workloadIdentity = jwtConfig.getWorkloadIdentity();
+            if (shouldSetWorkloadIdentity(workloadIdentity)) {
+                claims.put(workloadIdentityClaim, workloadIdentity);
+            }
         }
+    }
+
+    private boolean shouldSetWorkloadIdentity(String workloadIdentity) {
+        // don't set the workload identity if the jwt builder is called by its token endpoint
+        if (workloadIdentity.endsWith(",io.openliberty.security.jwt.internal")) {
+            return false;
+        }
+        return true;
     }
 
     private JwtConfig getTheServiceConfig(String builderConfigId) {
         return jwtServiceMapRef.getService(builderConfigId);
-    }
-
-    private String getCallingAppName() {
-        com.ibm.ws.runtime.metadata.ComponentMetaData cmd = com.ibm.ws.threadContext.ComponentMetaDataAccessorImpl.getComponentMetaDataAccessor().getComponentMetaData();
-        if (cmd != null) {
-            return cmd.getJ2EEName().getApplication();
-        }
-        return null;
     }
 
     @Reference(service = JwtConfig.class, name = KEY_JWT_SERVICE, policy = ReferencePolicy.DYNAMIC, cardinality = ReferenceCardinality.MULTIPLE, policyOption = ReferencePolicyOption.RELUCTANT)
@@ -332,7 +336,7 @@ public class BuilderImpl implements Builder {
     @Override
     public Builder issuer(String issuerUrl) throws InvalidClaimException {
         if (issuerUrl != null && !issuerUrl.isEmpty()) {
-            claims.put(Claims.ISSUER, issuerUrl);
+            putClaim(Claims.ISSUER, issuerUrl);
         } else {
             String err = Tr.formatMessage(tc, "JWT_INVALID_CLAIM_VALUE_ERR", new Object[] { Claims.ISSUER, issuerUrl });
             throw new InvalidClaimException(err);
@@ -363,7 +367,7 @@ public class BuilderImpl implements Builder {
                 throw new InvalidClaimException(err);
             }
             // this.audiences = new ArrayList<String>(audiences);
-            claims.put(Claims.AUDIENCE, audiences);
+            putClaim(Claims.AUDIENCE, audiences);
         } else {
             String err = Tr.formatMessage(tc, "JWT_INVALID_CLAIM_VALUE_ERR",
                     new Object[] { Claims.AUDIENCE, newaudiences });
@@ -384,7 +388,7 @@ public class BuilderImpl implements Builder {
         long currTime = System.currentTimeMillis() / 1000;
         if (exp >= currTime) {
             // if (exp > (new Date()).getTime()) {
-            claims.put(Claims.EXPIRATION, Long.valueOf(exp));
+            putClaim(Claims.EXPIRATION, Long.valueOf(exp));
         } else {
             // Expiration must be greater than the current time
             String err = Tr.formatMessage(tc, "JWT_INVALID_EXP_CLAIM_ERR", new Object[] { Claims.EXPIRATION, exp,
@@ -398,7 +402,7 @@ public class BuilderImpl implements Builder {
     private Builder issueTime(long iat) throws InvalidClaimException {
 
         if (iat > 0) {
-            claims.put(Claims.ISSUED_AT, Long.valueOf(iat));
+            putClaim(Claims.ISSUED_AT, Long.valueOf(iat));
         } else {
             // String msg = "The exp claim must be a positive number.";
             String err = Tr.formatMessage(tc, "JWT_INVALID_TIME_CLAIM_ERR", new Object[] { Claims.ISSUED_AT });
@@ -417,9 +421,9 @@ public class BuilderImpl implements Builder {
     public Builder jwtId(boolean create) {
         if (create) {
             String jti = JwtUtils.getRandom(16);
-            claims.put(Claims.ID, jti);
+            putClaim(Claims.ID, jti);
         } else {
-            claims.remove(Claims.ID);
+            removeClaim(Claims.ID);
         }
 
         return this;
@@ -435,7 +439,7 @@ public class BuilderImpl implements Builder {
     public Builder notBefore(long time_from) throws InvalidClaimException {
 
         if (time_from > 0) {
-            claims.put(Claims.NOT_BEFORE, time_from);
+            putClaim(Claims.NOT_BEFORE, time_from);
         } else {
             String err = Tr.formatMessage(tc, "JWT_INVALID_TIME_CLAIM_ERR", new Object[] { Claims.NOT_BEFORE });
             throw new InvalidClaimException(err);
@@ -453,7 +457,7 @@ public class BuilderImpl implements Builder {
     public Builder subject(String username) throws InvalidClaimException {
         if (username != null && !username.isEmpty()) {
 
-            claims.put(Claims.SUBJECT, username);
+            putClaim(Claims.SUBJECT, username);
         } else {
             String err = Tr.formatMessage(tc, "JWT_INVALID_CLAIM_VALUE_ERR", new Object[] { Claims.SUBJECT, username });
             throw new InvalidClaimException(err);
@@ -639,7 +643,7 @@ public class BuilderImpl implements Builder {
                     throw new InvalidClaimException(msg);
                 }
             } else {
-                claims.put(name, value);
+                putClaim(name, value);
             }
         }
         return this;
@@ -689,7 +693,7 @@ public class BuilderImpl implements Builder {
                 // e.printStackTrace();
             }
             if (obj != null) {
-                claims.put(name, obj);
+                putClaim(name, obj);
             }
         }
         return this;
@@ -707,7 +711,7 @@ public class BuilderImpl implements Builder {
             String err = Tr.formatMessage(tc, "JWT_INVALID_CLAIM_ERR", new Object[] { name });
             throw new InvalidClaimException(err);
         }
-        claims.remove(name);
+        removeClaim(name);
         return this;
     }
 
@@ -748,7 +752,7 @@ public class BuilderImpl implements Builder {
                 Object claimValue = null;
                 try {
                     if ((claimValue = JwtUtils.claimFromJsonObject(decoded, claim)) != null) {
-                        claims.put(claim, claimValue);
+                        putClaim(claim, claimValue);
                     }
                 } catch (JoseException e) {
                     String err = Tr.formatMessage(tc, "JWT_INVALID_TOKEN_ERR");
@@ -804,7 +808,7 @@ public class BuilderImpl implements Builder {
                 throw new InvalidTokenException(err);
             }
             if (claimsFromAnother != null && !claimsFromAnother.isEmpty()) {
-                claims.putAll(claimsFromAnother);
+                putAllClaims(claimsFromAnother);
             }
         }
         return this;
@@ -826,7 +830,7 @@ public class BuilderImpl implements Builder {
             throw new InvalidClaimException(err);
         }
         if (jwt.getClaims().get(claimName) != null) {
-            claims.put(claimName, jwt.getClaims().get(claimName));
+            putClaim(claimName, jwt.getClaims().get(claimName));
         }
         // else {
         // String err = Tr.formatMessage(tc, "JWT_INVALID_CLAIM_VALUE_ERR", new
@@ -847,7 +851,7 @@ public class BuilderImpl implements Builder {
     @Override
     public Builder claimFrom(JwtToken jwt) throws InvalidTokenException {
         if (jwt != null && !jwt.getClaims().isEmpty()) {
-            claims.putAll(jwt.getClaims());
+            putAllClaims(jwt.getClaims());
             // copyClaimsMap(jwt.getClaims());
         } else {
             String err = Tr.formatMessage(tc, "JWT_INVALID_TOKEN_ERR");// "JWT_INVALID_TOKEN_ERR";
@@ -867,16 +871,6 @@ public class BuilderImpl implements Builder {
         // Create JWT here
         // TODO check for default claims?)
         JwtConfig config = getConfig(configId);
-
-        if (config.getWorkloadIdentityClaim() != null) {
-            String workloadIdentity = (String) claims.get(config.getWorkloadIdentityClaim());
-            if (workloadIdentity == null) {
-                throw new JwtException("$JIMMY you removed the claim...");
-            }
-            if (!workloadIdentity.equals(config.getApplicationIdentity(getCallingAppName()))) {
-                throw new JwtException("$JIMMY you modified the claim...");
-            }
-        }
 
         JwtToken jwt = new TokenImpl(this, config);
 
@@ -994,6 +988,40 @@ public class BuilderImpl implements Builder {
             wsCredential = wsCredentialsIterator.next();
         }
         return wsCredential;
+    }
+
+    private void putClaim(String key, Object value) {
+        if (isWorkloadIdentityClaim(key)) {
+            Tr.warning(tc, "JWT_WORKLOAD_IDENTITY_CLAIM_MODIFIED", workloadIdentityClaim, configId);
+            return;
+        }
+        claims.put(key, value);
+    }
+
+    private void removeClaim(String key) {
+        if (isWorkloadIdentityClaim(key)) {
+            Tr.warning(tc, "JWT_WORKLOAD_IDENTITY_CLAIM_MODIFIED", workloadIdentityClaim, configId);
+            return;
+        }
+        claims.remove(key);
+    }
+
+    private void putAllClaims(Map<? extends String, ? extends Object> claimsMap) {
+        if (claimsMap.containsKey(workloadIdentityClaim)) {
+            Tr.warning(tc, "JWT_WORKLOAD_IDENTITY_CLAIM_MODIFIED", workloadIdentityClaim, configId);
+            claimsMap.remove(workloadIdentityClaim);
+        }
+        claims.putAll(claimsMap);
+    }
+
+    private boolean isWorkloadIdentityClaim(Object name) {
+        if (workloadIdentityClaim == null) {
+            return false;
+        }
+        if (!workloadIdentityClaim.equals(name)) {
+            return false;
+        }
+        return true;
     }
 
 }

@@ -403,10 +403,15 @@ JWE_MISSING_ALG_HEADER.useraction=Ensure that the algorithm header of the JWE to
 JWE_ALGORITHM_MISMATCH=CWWKS6069E: The JSON Web Encryption (JWE) is not valid because its Content Encryption Key (CEK) was encrypted by using the {0} algorithm. Content Encryption Keys must be encrypted by using the {1} algorithm.
 JWE_ALGORITHM_MISMATCH.explanation=The Content Encryption Keys must be encrypted by the algorithm specified in the message. Content Encryption Keys that are encrypted with any other encryption algorithm cannot be validated.
 JWE_ALGORITHM_MISMATCH.useraction=Obtain a new token with a Content Encryption Key that is encrypted by using the required algorithm that is specified in the message. Alternatively, update your JWT configuration to allow tokens with Content Encryption Keys that are encrypted by using the other encryption algorithm.
-
 # 0=Truststore reference, 1=Exception message
 JWT_ERROR_GETTING_CERT_ENTRIES=CWWKS6070E: Cannot load trusted certificate entries from the [{0}] truststore. {1}
 JWT_ERROR_GETTING_CERT_ENTRIES.explanation=An error occurred while the system was attempting to retrieve the list of trusted certificate entries from the specified truststore. The truststore might be missing from the configuration, or an issue might be preventing access to the truststore.
 JWT_ERROR_GETTING_CERT_ENTRIES.useraction=Verify that the truststore is configured correctly in your server configuration and that it is accessible. Check the error message for more information about the failure.
+
+# Do not translate "JSON Web Token", "JWT"
+JWT_WORKLOAD_IDENTITY_CLAIM_MODIFIED=CWWKS6071W: An attempt to overwrite or remove the [{0}] workload identity claim from the JSON Web Token (JWT) was ignored by the [{1}] JWT Builder.
+JWT_WORKLOAD_IDENTITY_CLAIM_MODIFIED.explanation=The application used the JWT Builder API to try to overwrite or remove the claim that is configured as the workload identity. The operation is not performed because the workload identity claim is protected and the server-generated value remains in the JWT.
+JWT_WORKLOAD_IDENTITY_CLAIM_MODIFIED.useraction=Remove any JWT Builder API calls that attempt to overwrite or remove the workload identity claim.
+
 
 
