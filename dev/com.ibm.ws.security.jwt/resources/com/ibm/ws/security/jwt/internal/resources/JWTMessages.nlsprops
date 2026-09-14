@@ -409,9 +409,12 @@ JWT_ERROR_GETTING_CERT_ENTRIES.explanation=An error occurred while the system wa
 JWT_ERROR_GETTING_CERT_ENTRIES.useraction=Verify that the truststore is configured correctly in your server configuration and that it is accessible. Check the error message for more information about the failure.
 
 # Do not translate "JSON Web Token", "JWT"
-JWT_WORKLOAD_IDENTITY_CLAIM_MODIFIED=CWWKS6071W: An attempt to overwrite or remove the [{0}] workload identity claim from the JSON Web Token (JWT) was ignored by the [{1}] JWT Builder.
-JWT_WORKLOAD_IDENTITY_CLAIM_MODIFIED.explanation=The application used the JWT Builder API to try to overwrite or remove the claim that is configured as the workload identity. The operation is not performed because the workload identity claim is protected and the server-generated value remains in the JWT.
-JWT_WORKLOAD_IDENTITY_CLAIM_MODIFIED.useraction=Remove any JWT Builder API calls that attempt to overwrite or remove the workload identity claim.
+JWT_WORKLOAD_IDENTITY_CLAIM_CANNOT_BE_MODIFIED=CWWKS6071W: An attempt to overwrite or remove the [{0}] workload identity claim from the JSON Web Token (JWT) was ignored by the [{1}] JWT Builder.
+JWT_WORKLOAD_IDENTITY_CLAIM_CANNOT_BE_MODIFIED.explanation=The application used the JWT Builder API to try to overwrite or remove the claim that is configured as the workload identity. The operation is not performed because the workload identity claim is protected and the server-generated value remains in the JWT.
+JWT_WORKLOAD_IDENTITY_CLAIM_CANNOT_BE_MODIFIED.useraction=Remove any JWT Builder API calls that attempt to overwrite or remove the workload identity claim.
 
-
+# Do not translate "JSON Web Token", "JWT"
+JWT_BUILDER_CHECKPOINT_NOT_SUPPORTED=CWWKS6072E: The [{0}] JSON Web Token (JWT) builder cannot be invoked during the server checkpoint phase.
+JWT_BUILDER_CHECKPOINT_NOT_SUPPORTED.explanation=The JWT builder cannot build JWTs while taking a server checkpoint because the workload identity cannot be generated until the process is restored.
+JWT_BUILDER_CHECKPOINT_NOT_SUPPORTED.useraction=Configure the application to invoke the JWT builder only after the server has restored from checkpoint.
 

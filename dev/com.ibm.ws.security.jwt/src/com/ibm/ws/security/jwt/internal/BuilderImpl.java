@@ -62,6 +62,8 @@ import com.ibm.wsspi.kernel.service.utils.AtomicServiceReference;
 import com.ibm.wsspi.kernel.service.utils.ConcurrentServiceReferenceMap;
 import com.ibm.wsspi.ssl.SSLSupport;
 
+import io.openliberty.checkpoint.spi.CheckpointPhase;
+
 /*
  * @author IBM Corporation
  *
@@ -206,6 +208,11 @@ public class BuilderImpl implements Builder {
         // don't set the workload identity if the jwt builder is called by its token endpoint
         if (workloadIdentity.endsWith(",io.openliberty.security.jwt.internal")) {
             return false;
+        }
+        // cannot set workload identity if jwt builder is invoked during checkpoint since env vars are not available
+        if (!CheckpointPhase.getPhase().restored()) {
+            String err = Tr.formatMessage(tc, "JWT_BUILDER_CHECKPOINT_NOT_SUPPORTED", new Object[] { configId });
+            throw new IllegalStateException(err);
         }
         return true;
     }
@@ -992,7 +999,7 @@ public class BuilderImpl implements Builder {
 
     private void putClaim(String key, Object value) {
         if (isWorkloadIdentityClaim(key)) {
-            Tr.warning(tc, "JWT_WORKLOAD_IDENTITY_CLAIM_MODIFIED", workloadIdentityClaim, configId);
+            Tr.warning(tc, "JWT_WORKLOAD_IDENTITY_CLAIM_CANNOT_BE_MODIFIED", workloadIdentityClaim, configId);
             return;
         }
         claims.put(key, value);
@@ -1000,7 +1007,7 @@ public class BuilderImpl implements Builder {
 
     private void removeClaim(String key) {
         if (isWorkloadIdentityClaim(key)) {
-            Tr.warning(tc, "JWT_WORKLOAD_IDENTITY_CLAIM_MODIFIED", workloadIdentityClaim, configId);
+            Tr.warning(tc, "JWT_WORKLOAD_IDENTITY_CLAIM_CANNOT_BE_MODIFIED", workloadIdentityClaim, configId);
             return;
         }
         claims.remove(key);
@@ -1008,7 +1015,7 @@ public class BuilderImpl implements Builder {
 
     private void putAllClaims(Map<? extends String, ? extends Object> claimsMap) {
         if (claimsMap.containsKey(workloadIdentityClaim)) {
-            Tr.warning(tc, "JWT_WORKLOAD_IDENTITY_CLAIM_MODIFIED", workloadIdentityClaim, configId);
+            Tr.warning(tc, "JWT_WORKLOAD_IDENTITY_CLAIM_CANNOT_BE_MODIFIED", workloadIdentityClaim, configId);
             claimsMap.remove(workloadIdentityClaim);
         }
         claims.putAll(claimsMap);
