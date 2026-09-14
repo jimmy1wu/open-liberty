@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2022 IBM Corporation and others.
+ * Copyright (c) 2016, 2026 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -46,6 +46,7 @@ import com.ibm.ws.security.common.jwk.impl.JWKProvider;
 import com.ibm.ws.security.jwt.config.JwtConfig;
 import com.ibm.ws.security.jwt.config.JwtConfigUtil;
 import com.ibm.ws.security.jwt.utils.JwtUtils;
+import com.ibm.ws.threadContext.ComponentMetaDataAccessorImpl;
 import com.ibm.ws.webcontainer.security.jwk.JSONWebKey;
 
 @Component(service = JwtConfig.class, immediate = true, configurationPolicy = ConfigurationPolicy.REQUIRE, configurationPid = "com.ibm.ws.security.jwt.builder", name = "jwtConfig", property = "service.vendor=IBM")
@@ -74,6 +75,7 @@ public class JwtComponent implements JwtConfig {
     private String keyManagementKeyAlias;
     private String contentEncryptionAlgorithm;
     private long nbfOffsetTime;
+    private String workloadIdentityClaim;
 
     private PublicKey publicKey = null;
     private PrivateKey privateKey = null;
@@ -145,6 +147,7 @@ public class JwtComponent implements JwtConfig {
         if (props == null || props.isEmpty()) {
             return;
         }
+        workloadIdentityClaim = JwtUtils.trimIt((String) props.get(JwtUtils.CFG_KEY_WORKLOAD_IDENTITY_CLAIM));
         issuer = JwtUtils.trimIt((String) props.get(JwtUtils.CFG_KEY_ID));
         issuerUrl = JwtUtils.trimIt((String) props.get(JwtUtils.CFG_KEY_ISSUER));
         isJwkEnabled = (Boolean) props.get(JwtUtils.CFG_KEY_JWK_ENABLED);
@@ -184,6 +187,33 @@ public class JwtComponent implements JwtConfig {
             valid = expiresInSeconds;
         } else {
             valid = valid * 3600;
+        }
+
+        checkWorkloadIdentityClaimConflicts();
+    }
+
+    private void checkWorkloadIdentityClaimConflicts() {
+        if (workloadIdentityClaim == null) {
+            return;
+        }
+
+        if (workloadIdentityClaim.equals("iss") && issuerUrl != null) {
+            Tr.warning(tc, "JWT_WORKLOAD_IDENTITY_CLAIM_CONFLICTS_WITH_CONFIG",
+                    new Object[] { issuer, workloadIdentityClaim, JwtUtils.CFG_KEY_ISSUER, issuerUrl });
+        } else if (workloadIdentityClaim.equals("aud") && audiences != null) {
+            Tr.warning(tc, "JWT_WORKLOAD_IDENTITY_CLAIM_CONFLICTS_WITH_CONFIG",
+                    new Object[] { issuer, workloadIdentityClaim, JwtUtils.CFG_KEY_AUDIENCES, audiences });
+        } else if (workloadIdentityClaim.equals("scope") && scope != null) {
+            Tr.warning(tc, "JWT_WORKLOAD_IDENTITY_CLAIM_CONFLICTS_WITH_CONFIG",
+                    new Object[] { issuer, workloadIdentityClaim, JwtUtils.CFG_KEY_SCOPE, scope });
+        } else if (workloadIdentityClaim.equals("jti") && jti) {
+            Tr.warning(tc, "JWT_WORKLOAD_IDENTITY_CLAIM_CONFLICTS_WITH_CONFIG",
+                    new Object[] { issuer, workloadIdentityClaim, JwtUtils.CFG_KEY_JTI, jti });
+        }
+
+        if (claims != null && claims.contains(workloadIdentityClaim)) {
+            Tr.warning(tc, "JWT_WORKLOAD_IDENTITY_CLAIM_CONFLICTS_WITH_CONFIG",
+                    new Object[] { issuer, workloadIdentityClaim, JwtUtils.CFG_KEY_CLAIMS, claims });
         }
     }
 
@@ -298,6 +328,61 @@ public class JwtComponent implements JwtConfig {
     @Sensitive
     public String getSharedKey() {
         return sharedKey;
+    }
+
+    @Override
+    public String getWorkloadIdentityClaim() {
+        return workloadIdentityClaim;
+    }
+
+    @Override
+    public String getWorkloadIdentity() {
+        return getHost() + "," + getUsrDir() + "," + getServerName() + "," + getAppName();
+    }
+
+    private String getHost() {
+        String host = System.getenv("CONTAINER_HOST");
+        if (host == null) {
+            host = serverInfoMBean.getDefaultHostname();
+        }
+        if (host == null || host.equals("localhost")) {
+            host = getCanonicalHostName();
+        }
+        return host;
+    }
+
+    private String getCanonicalHostName() {
+        try {
+            return AccessController.doPrivileged(new PrivilegedExceptionAction<String>() {
+                @Override
+                public String run() throws UnknownHostException {
+                    return InetAddress.getLocalHost().getCanonicalHostName();
+                }
+            });
+        } catch (PrivilegedActionException pae) {
+            return "";
+        }
+    }
+
+    private String getUsrDir() {
+        String usrDir = serverInfoMBean.getUserDirectory();
+        return usrDir;
+    }
+
+    private String getServerName() {
+        String serverName = System.getenv("CONTAINER_NAME");
+        if (serverName == null) {
+            serverName = serverInfoMBean.getName();
+        }
+        return serverName;
+    }
+
+    private String getAppName() {
+        return ComponentMetaDataAccessorImpl
+                .getComponentMetaDataAccessor()
+                .getComponentMetaData()
+                .getJ2EEName()
+                .getApplication();
     }
 
     @Override
